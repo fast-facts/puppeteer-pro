@@ -4,6 +4,11 @@ import * as events from 'events';
 
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
+
+if (!Puppeteer) {
+  throw new Error('Please install puppeteer');
+}
+
 import * as errors from 'puppeteer/Errors';
 import * as devices from 'puppeteer/DeviceDescriptors';
 
@@ -168,8 +173,8 @@ export function avoidDetection() {
 
   const pluginDependency = anonymizeUserAgent();
 
-  const injectionsFolder = './src/injections';
-  const injections = fs.readdirSync(injectionsFolder).map(fileName => require(path.resolve(`${injectionsFolder}/${fileName}`)));
+  const injectionsFolder = path.resolve(`${__dirname}/injections`);
+  const injections = fs.readdirSync(injectionsFolder).map(fileName => require(`${injectionsFolder}/${fileName}`));
 
   const plugin = {
     stopped: false,
