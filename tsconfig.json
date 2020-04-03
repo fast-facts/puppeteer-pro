@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
+    "lib": [
+      "ES2018",
+      "dom"
+    ],
+    "module": "commonjs",
+    "target": "ES2018",
     "alwaysStrict": false,
     "declaration": true,
     "declarationMap": true,
     "downlevelIteration": true,
-    "inlineSources": true,
     "importHelpers": true,
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "inlineSources": true,
     "noEmitHelpers": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
@@ -20,11 +21,9 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "dist",
     "pretty": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es5",
     "strictBindCallApply": false,
   },
   "include": [

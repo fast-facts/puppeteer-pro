@@ -1,6 +1,6 @@
 /* eslint-disable semi */
 const Puppeteer = require('puppeteer');
-const PuppetPlus = require('../dist/index');
+const PuppeteerPro = require('../dist/index');
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -11,17 +11,17 @@ const waitUntil = async func => { while (!func()) await sleep(200); };
 describe('Original methods', () => {
   ['connect', 'defaultArgs', 'executablePath', 'launch', 'createBrowserFetcher'].map(x => {
     it(`should have ${x}`, () => {
-      expect(PuppetPlus[x]).to.be.not.undefined;
+      expect(PuppeteerPro[x]).to.be.not.undefined;
     });
   });
 });
 
-describe('PuppetPlus', () => {
+describe('PuppeteerPro', () => {
   const anonymizeTest = plugin => async browser => {
     let page;
 
     try {
-      browser = browser || await PuppetPlus.launch();
+      browser = browser || await PuppeteerPro.launch();
       page = await browser.newPage();
 
       const getResult = async () => {
@@ -50,7 +50,7 @@ describe('PuppetPlus', () => {
     let page;
 
     try {
-      browser = browser || await PuppetPlus.launch();
+      browser = browser || await PuppeteerPro.launch();
       page = await browser.newPage();
 
       const getResult = async () => {
@@ -83,7 +83,7 @@ describe('PuppetPlus', () => {
     let page;
 
     try {
-      browser = browser || await PuppetPlus.launch();
+      browser = browser || await PuppeteerPro.launch();
       page = await browser.newPage();
 
       const getResult = async () => {
@@ -125,8 +125,8 @@ describe('PuppetPlus', () => {
       before(async () => {
         await waitUntil(() => numFinished === i);
 
-        PuppetPlus.clearPlugins();
-        performTest = plugin.test(PuppetPlus[plugin.method].apply(PuppetPlus, plugin.args));
+        PuppeteerPro.clearPlugins();
+        performTest = plugin.test(PuppeteerPro[plugin.method].apply(PuppeteerPro, plugin.args));
       });
       after(function () { numFinished++; });
 
@@ -139,7 +139,7 @@ describe('PuppetPlus', () => {
         const browserWSEndpoint = browser.wsEndpoint();
         browser.disconnect();
 
-        await performTest(await PuppetPlus.connect({ browserWSEndpoint }));
+        await performTest(await PuppeteerPro.connect({ browserWSEndpoint }));
       });
     });
   });
