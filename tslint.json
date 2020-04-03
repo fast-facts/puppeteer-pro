@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "tslint:recommended"
+  ],
+  "rules": {
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "only-multiline"
+      }
+    ],
+    "no-return-await": true,
+    "semicolon": [
+      true,
+      "always"
+    ]
+  }
+}
