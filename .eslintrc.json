@@ -1,0 +1,39 @@
+{
+  "extends": "eslint:recommended",
+  // "extends": "google",
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "env": {
+    "node": true,
+    "browser": true,
+    "es6": true,
+    "mocha": true
+  },
+  "rules": {
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "only-multiline"
+      }
+    ],
+    "linebreak-style": [
+      "error",
+      "windows"
+    ],
+    "max-len": [
+      "error",
+      {
+        "code": 1e10
+      }
+    ],
+    "no-console": "off",
+    "require-await": [
+      "error"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ]
+  }
+}
