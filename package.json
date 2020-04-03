@@ -1,5 +1,5 @@
 {
-  "name": "puppet-plus",
+  "name": "puppeteer-pro",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ItzRabbs/puppet-plus.git"
+    "url": "git+https://github.com/ItzRabbs/puppeteer-pro.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ItzRabbs/puppet-plus/issues"
+    "url": "https://github.com/ItzRabbs/puppeteer-pro/issues"
   },
-  "homepage": "https://github.com/ItzRabbs/puppet-plus#readme",
+  "homepage": "https://github.com/ItzRabbs/puppeteer-pro#readme",
   "dependencies": {
     "@types/puppeteer": "^2.0.1",
     "puppeteer": "^2.1.1"

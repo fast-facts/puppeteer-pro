@@ -1,1 +1,1 @@
-# puppet-plus
+# puppeteer-pro
