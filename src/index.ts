@@ -1,6 +1,7 @@
+// import * as crypto from 'crypto';
+import * as events from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as events from 'events';
 
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
@@ -63,266 +64,258 @@ export function createBrowserFetcher(options?: Puppeteer.FetcherOptions): Puppet
 // Added methods
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-interface Plugin {
-  stopped: boolean;
-  init: (browser: Puppeteer.Browser) => Promise<void>;
-  restart: () => Promise<void>;
-  stop: () => Promise<void>;
-  onPageCreated?: (target: Puppeteer.Target) => Promise<void>;
-  onRequest?: (request: Puppeteer.Request) => Promise<void>;
-  onDialog?: (dialog: Puppeteer.Dialog) => Promise<void>;
-}
-interface PluginMethods {
-  restart: () => Promise<void>;
-  stop: () => Promise<void>;
-}
+let interceptions = 0;
+class Plugin {
+  private browser: Puppeteer.Browser | null = null;
+  private initialized = false;
+  private startCounter = 0;
+  private turnOffOnClose: (() => void)[] = [];
+  protected dependencies: Plugin[] = [];
+  protected requiresInterception = false;
 
-const pickPluginMethods = (p: Plugin): PluginMethods => ({ restart: p.restart, stop: p.stop });
+  get isInitialized() { return this.initialized; }
+  get isStopped() { return this.startCounter === 0; }
+
+  async init(browser: Puppeteer.Browser) {
+    if (this.initialized) return;
+
+    this.browser = browser;
+
+    browserEvents.once('close', () => {
+      this.turnOffOnClose.forEach(fn => fn());
+
+      this.onClose();
+
+      this.initialized = false;
+      this.startCounter = 0;
+    });
+
+    this.startCounter++;
+
+    const thisOnTargetCreated = this.onTargetCreated.bind(this);
+    browser.on('targetcreated', thisOnTargetCreated);
+    this.turnOffOnClose.push(() => browser.off('targetcreated', thisOnTargetCreated));
+
+    this.initialized = true;
+
+    return this.afterLaunch(browser);
+  }
+  async afterLaunch(_browser: Puppeteer.Browser) { }
+  async onClose() { }
+
+  async onTargetCreated(target: Puppeteer.Target) {
+    if (target.type() !== 'page') return;
+    const page = await target.page();
+    if (page.isClosed()) return;
+
+    if (this.requiresInterception) {
+      await page.setRequestInterception(true);
+
+      const thisOnRequest = this.onRequest.bind(this);
+      page.on('request', thisOnRequest);
+      this.turnOffOnClose.push(() => page.off('request', thisOnRequest));
+    }
+
+    const thisOnDialog = this.onDialog.bind(this);
+    page.on('dialog', thisOnDialog);
+    this.turnOffOnClose.push(() => page.off('dialog', thisOnDialog));
+
+    await this.onPageCreated(page);
+  }
+  async onPageCreated(_page: Puppeteer.Page) { }
+
+  async onRequest(request: Puppeteer.Request) {
+    const interceptionHandled = (request as any)._interceptionHandled;
+    if (interceptionHandled) return;
+    if (this.isStopped) return request.continue();
+
+    await this.processRequest(request);
+  }
+  async processRequest(_request: Puppeteer.Request) { }
+
+  async onDialog(dialog: Puppeteer.Dialog) {
+    const handled = (dialog as any)._handled;
+
+    if (handled) return;
+    if (this.isStopped) return;
+
+    await this.processDialog(dialog);
+  }
+  async processDialog(_dialog: Puppeteer.Dialog) { }
+
+  async beforeRestart() { }
+  async restart() {
+    await this.beforeRestart();
+
+    this.startCounter++;
+    if (this.requiresInterception) interceptions++;
+
+    this.dependencies.forEach(x => x.restart());
+
+    await this.afterRestart();
+  }
+  async afterRestart() { }
+
+  async beforeStop() { }
+  async stop() {
+    await this.beforeStop();
+
+    this.startCounter--;
+    if (this.requiresInterception) interceptions--;
+
+    if (interceptions === 0 && this.browser) {
+      const pages = await this.browser.pages();
+
+      pages.filter(x => !x.isClosed()).forEach((page: Puppeteer.Page) => {
+        page.setRequestInterception(false);
+      });
+    }
+
+    this.dependencies.forEach(x => x.stop());
+
+    await this.afterStop();
+  }
+  async afterStop() { }
+}
 
 let plugins: Plugin[] = [];
 export function clearPlugins() {
   plugins = [];
 }
 
-let anonymizeUserAgentPlugin: Plugin;
-export function anonymizeUserAgent(): PluginMethods {
-  if (anonymizeUserAgentPlugin) {
-    if (!plugins.includes(anonymizeUserAgentPlugin)) {
-      plugins.push(anonymizeUserAgentPlugin);
-    }
+interface PageUserAgent {
+  target: Puppeteer.Page;
+  userAgent: string;
+  newUserAgent: string;
+}
+class AnonymizeUserAgentPlugin extends Plugin {
+  private pages: PageUserAgent[] = [];
 
-    return pickPluginMethods(anonymizeUserAgentPlugin);
+  async afterLaunch(browser: Puppeteer.Browser) {
+    const _newPage = browser.newPage;
+    browser.newPage = async (): Promise<Puppeteer.Page> => {
+      const page = await _newPage.apply(browser);
+      await sleep(100); // Sleep to allow user agent to set
+      return page;
+    };
   }
 
-  interface Page {
-    target: Puppeteer.Page;
-    userAgent: string;
-    newUserAgent: string;
+  async onClose() {
+    this.pages = [];
   }
 
-  let pages: Page[] = [];
+  async onPageCreated(page: Puppeteer.Page) {
+    const userAgent = await page.browser().userAgent();
+    const newUserAgent = userAgent
+      .replace('HeadlessChrome/', 'Chrome/')
+      .replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
 
-  const plugin = {
-    stopped: false,
-    init: async (browser: Puppeteer.Browser) => {
-      browser.on('targetcreated', plugin.onPageCreated);
+    this.pages.push({ target: page, userAgent, newUserAgent });
 
-      browserEvents.once('close', () => {
-        browser.off('targetcreated', plugin.onPageCreated);
-        pages = [];
-      });
+    await page.setUserAgent(newUserAgent);
+  }
 
-      const _newPage = browser.newPage;
-      browser.newPage = async (): Promise<Puppeteer.Page> => {
-        const page = await _newPage.apply(browser);
-        await sleep(100);
-        return page;
-      };
+  async beforeRestart() {
+    for (const page of this.pages) {
+      if (page.target.isClosed()) continue;
 
-      await plugin.restart();
-    },
-    restart: async () => {
-      plugin.stopped = false;
-
-      for (const page of pages) {
-        if (page.target.isClosed()) continue;
-
-        await page.target.setUserAgent(page.newUserAgent);
-      }
-    },
-    stop: async () => {
-      plugin.stopped = true;
-
-      for (const page of pages) {
-        if (page.target.isClosed()) continue;
-
-        await page.target.setUserAgent(page.userAgent);
-      }
-    },
-    onPageCreated: async (target: Puppeteer.Target) => {
-      if (target.type() !== 'page') return;
-
-      const page = await target.page();
-      const userAgent = await page.browser().userAgent();
-      const newUserAgent = userAgent
-        .replace('HeadlessChrome/', 'Chrome/')
-        .replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
-
-      pages.push({ target: page, userAgent, newUserAgent });
-
-      if (plugin.stopped) return;
-      if (page.isClosed()) return;
-
-      await page.setUserAgent(newUserAgent);
+      await page.target.setUserAgent(page.newUserAgent);
     }
-  };
+  }
 
+  async afterStop() {
+    for (const page of this.pages) {
+      if (page.target.isClosed()) continue;
+
+      await page.target.setUserAgent(page.userAgent);
+    }
+  }
+}
+
+let anonymizeUserAgentPlugin: AnonymizeUserAgentPlugin;
+export function anonymizeUserAgent(): AnonymizeUserAgentPlugin {
+  const plugin = anonymizeUserAgentPlugin || new AnonymizeUserAgentPlugin();
   anonymizeUserAgentPlugin = plugin;
-  plugins.push(plugin);
 
-  return pickPluginMethods(plugin);
-}
-
-let avoidDetectionPlugin: Plugin;
-export function avoidDetection(): PluginMethods {
-  if (avoidDetectionPlugin) {
-    if (!plugins.includes(avoidDetectionPlugin)) {
-      plugins.push(avoidDetectionPlugin);
-    }
-
-    return pickPluginMethods(avoidDetectionPlugin);
+  if (!plugins.includes(plugin)) {
+    plugins.push(plugin);
   }
 
-  const pluginDependency = anonymizeUserAgent();
+  return plugin;
+}
 
-  const injectionsFolder = path.resolve(`${__dirname}/injections`);
-  const injections = fs.readdirSync(injectionsFolder).map(fileName => require(`${injectionsFolder}/${fileName}`));
+class AvoidDetectionPlugin extends Plugin {
+  dependencies = [anonymizeUserAgent()];
+  injectionsFolder = path.resolve(`${__dirname}/injections`);
+  injections = fs.readdirSync(this.injectionsFolder).map(fileName => require(`${this.injectionsFolder}/${fileName}`));
 
-  const plugin = {
-    stopped: false,
-    init: async (browser: Puppeteer.Browser) => {
-      browser.on('targetcreated', plugin.onPageCreated);
+  async onPageCreated(page: Puppeteer.Page) {
+    await page.exposeFunction('isStopped', () => this.isStopped);
 
-      browserEvents.once('close', () => {
-        browser.off('targetcreated', plugin.onPageCreated);
-      });
-
-      await plugin.restart();
-    },
-    restart: async () => {
-      plugin.stopped = false;
-
-      await pluginDependency.restart();
-    },
-    stop: async () => {
-      plugin.stopped = true;
-
-      await pluginDependency.stop();
-    },
-    onPageCreated: async (target: Puppeteer.Target) => {
-      if (target.type() !== 'page') return;
-
-      const page = await target.page();
-
-      await page.exposeFunction('isStopped', () => plugin.stopped);
-
-      for (const injection of injections) {
-        await page.evaluateOnNewDocument(injection);
-      }
+    for (const injection of this.injections) {
+      await page.evaluateOnNewDocument(injection);
     }
-  };
+  }
+}
 
+let avoidDetectionPlugin: AvoidDetectionPlugin;
+export function avoidDetection(): AvoidDetectionPlugin {
+  const plugin = avoidDetectionPlugin || new AvoidDetectionPlugin();
   avoidDetectionPlugin = plugin;
-  plugins.push(plugin);
 
-  return pickPluginMethods(plugin);
-}
-
-type resourceType = 'document' | 'stylesheet' | 'image' | 'media' | 'font' | 'script' | 'texttrack' | 'xhr' | 'fetch' | 'eventsource' | 'websocket' | 'manifest' | 'other';
-let blockResourcesPlugin: Plugin;
-export function blockResources(...resources: resourceType[]): PluginMethods {
-  if (blockResourcesPlugin) {
-    if (!plugins.includes(blockResourcesPlugin)) {
-      plugins.push(blockResourcesPlugin);
-    }
-
-    return pickPluginMethods(blockResourcesPlugin);
+  if (!plugins.includes(plugin)) {
+    plugins.push(plugin);
   }
 
-  const plugin = {
-    stopped: false,
-    init: async (browser: Puppeteer.Browser) => {
-      browser.on('targetcreated', plugin.onPageCreated);
+  return plugin;
+}
 
-      browserEvents.once('close', () => {
-        browser.off('targetcreated', plugin.onPageCreated);
-      });
+type Resource = 'document' | 'stylesheet' | 'image' | 'media' | 'font' | 'script' | 'texttrack' | 'xhr' | 'fetch' | 'eventsource' | 'websocket' | 'manifest' | 'other';
+class BlockResourcesPlugin extends Plugin {
+  requiresInterception = true;
+  blockResources: Resource[];
 
-      await plugin.restart();
-    },
-    restart: async () => {
-      plugin.stopped = false;
-    },
-    stop: async () => {
-      plugin.stopped = true;
-    },
-    onPageCreated: async (target: Puppeteer.Target) => {
-      if (target.type() !== 'page') return;
+  constructor(resources: Resource[] = []) {
+    super();
 
-      const page = await target.page();
+    this.blockResources = resources;
+  }
 
-      await page.setRequestInterception(true);
-      page.on('request', plugin.onRequest);
-
-      browserEvents.once('close', () => {
-        page.off('request', plugin.onRequest);
-      });
-    },
-    onRequest: async (request: Puppeteer.Request) => {
-      const interceptionHandled = (request as any)._interceptionHandled;
-
-      if (interceptionHandled) return;
-      if (plugin.stopped) return request.continue();
-      return resources.includes(request.resourceType()) ? request.abort() : request.continue();
+  async processRequest(request: Puppeteer.Request) {
+    if (this.blockResources.includes(request.resourceType())) {
+      request.abort();
+    } else {
+      request.continue();
     }
-  };
+  }
+}
 
+let blockResourcesPlugin: BlockResourcesPlugin;
+export function blockResources(...resources: Resource[]): BlockResourcesPlugin {
+  const plugin = blockResourcesPlugin || new BlockResourcesPlugin(resources);
   blockResourcesPlugin = plugin;
-  plugins.push(plugin);
 
-  return pickPluginMethods(plugin);
-}
-
-let disableDialogsPlugin: Plugin;
-export function disableDialogs(): PluginMethods {
-  if (disableDialogsPlugin) {
-    if (!plugins.includes(disableDialogsPlugin)) {
-      plugins.push(disableDialogsPlugin);
-    }
-
-    return pickPluginMethods(disableDialogsPlugin);
+  if (!plugins.includes(plugin)) {
+    plugins.push(plugin);
   }
 
-  const plugin = {
-    stopped: false,
-    init: async (browser: Puppeteer.Browser) => {
-      browser.on('targetcreated', plugin.onPageCreated);
+  return plugin;
+}
 
-      browserEvents.once('close', () => {
-        browser.off('targetcreated', plugin.onPageCreated);
-      });
+class DisableDialogsPlugin extends Plugin {
+  async processDialog(dialog: Puppeteer.Dialog) {
+    dialog.dismiss();
+  }
+}
 
-      await plugin.restart();
-    },
-    restart: async () => {
-      plugin.stopped = false;
-    },
-    stop: async () => {
-      plugin.stopped = true;
-    },
-    onPageCreated: async (target: Puppeteer.Target) => {
-      if (target.type() !== 'page') return;
-
-      const page = await target.page();
-
-      page.on('dialog', plugin.onDialog);
-
-      browserEvents.once('close', () => {
-        page.off('dialog', plugin.onDialog);
-      });
-    },
-    onDialog: async (dialog: Puppeteer.Dialog) => {
-      const handled = (dialog as any)._handled;
-
-      if (handled) return;
-      if (plugin.stopped) return;
-
-      await dialog.dismiss();
-    }
-  };
-
+let disableDialogsPlugin: DisableDialogsPlugin;
+export function disableDialogs(): DisableDialogsPlugin {
+  const plugin = disableDialogsPlugin || new DisableDialogsPlugin();
   disableDialogsPlugin = plugin;
-  plugins.push(plugin);
 
-  return pickPluginMethods(plugin);
+  if (!plugins.includes(plugin)) {
+    plugins.push(plugin);
+  }
+
+  return plugin;
 }
