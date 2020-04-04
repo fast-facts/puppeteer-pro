@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && tsc && copyfiles -f ./src/injections/* ./dist/injections/",
+    "prebuild": "npm run clean",
+    "build": "tsc",
+    "postbuild": "npm run copy:injections && npm run copy:files",
+    "copy:injections": "copyfiles -f src/injections/* dist/injections/",
+    "copy:files": "copyfiles README.md LICENSE dist",
     "test": "mocha --timeout 30000"
   },
   "repository": {
