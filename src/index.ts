@@ -68,8 +68,9 @@ interface Plugin {
   init: (browser: Puppeteer.Browser) => Promise<void>;
   restart: () => Promise<void>;
   stop: () => Promise<void>;
-  onPageCreated?: (target: Puppeteer.Target, ...args: any[]) => Promise<void>;
+  onPageCreated?: (target: Puppeteer.Target) => Promise<void>;
   onRequest?: (request: Puppeteer.Request) => Promise<void>;
+  onDialog?: (dialog: Puppeteer.Dialog) => Promise<void>;
 }
 
 let plugins: Plugin[] = [];
@@ -100,7 +101,7 @@ export function anonymizeUserAgent() {
     init: async (browser: Puppeteer.Browser) => {
       browser.on('targetcreated', plugin.onPageCreated);
 
-      browserEvents.on('close', () => {
+      browserEvents.once('close', () => {
         browser.off('targetcreated', plugin.onPageCreated);
         pages = [];
       });
@@ -108,7 +109,7 @@ export function anonymizeUserAgent() {
       const _newPage = browser.newPage;
       browser.newPage = async (): Promise<Puppeteer.Page> => {
         const page = await _newPage.apply(browser);
-        await sleep(10);
+        await sleep(100);
         return page;
       };
 
@@ -132,7 +133,7 @@ export function anonymizeUserAgent() {
         await page.target.setUserAgent(page.userAgent);
       }
     },
-    onPageCreated: async (target: Puppeteer.Target, ..._args: any[]) => {
+    onPageCreated: async (target: Puppeteer.Target) => {
       if (target.type() !== 'page') return;
 
       const page = await target.page();
@@ -143,11 +144,10 @@ export function anonymizeUserAgent() {
 
       pages.push({ target: page, userAgent, newUserAgent });
 
-      if (!plugin.stopped) {
-        if (page.isClosed()) return;
+      if (plugin.stopped) return;
+      if (page.isClosed()) return;
 
-        await page.setUserAgent(newUserAgent);
-      }
+      await page.setUserAgent(newUserAgent);
     }
   };
 
@@ -177,7 +177,7 @@ export function avoidDetection() {
     init: async (browser: Puppeteer.Browser) => {
       browser.on('targetcreated', plugin.onPageCreated);
 
-      browserEvents.on('close', () => {
+      browserEvents.once('close', () => {
         browser.off('targetcreated', plugin.onPageCreated);
       });
 
@@ -193,7 +193,7 @@ export function avoidDetection() {
 
       await pluginDependency.stop();
     },
-    onPageCreated: async (target: Puppeteer.Target, ..._args: any[]) => {
+    onPageCreated: async (target: Puppeteer.Target) => {
       if (target.type() !== 'page') return;
 
       const page = await target.page();
@@ -228,7 +228,7 @@ export function blockResources(...resources: resourceType[]) {
     init: async (browser: Puppeteer.Browser) => {
       browser.on('targetcreated', plugin.onPageCreated);
 
-      browserEvents.on('close', () => {
+      browserEvents.once('close', () => {
         browser.off('targetcreated', plugin.onPageCreated);
       });
 
@@ -240,7 +240,7 @@ export function blockResources(...resources: resourceType[]) {
     stop: async () => {
       plugin.stopped = true;
     },
-    onPageCreated: async (target: Puppeteer.Target, ..._args: any[]) => {
+    onPageCreated: async (target: Puppeteer.Target) => {
       if (target.type() !== 'page') return;
 
       const page = await target.page();
@@ -248,7 +248,7 @@ export function blockResources(...resources: resourceType[]) {
       await page.setRequestInterception(true);
       page.on('request', plugin.onRequest);
 
-      browserEvents.on('close', () => {
+      browserEvents.once('close', () => {
         page.off('request', plugin.onRequest);
       });
     },
@@ -262,6 +262,60 @@ export function blockResources(...resources: resourceType[]) {
   };
 
   blockResourcesPlugin = plugin;
+  plugins.push(plugin);
+
+  return { restart: plugin.restart, stop: plugin.stop };
+}
+
+let disableDialogsPlugin: Plugin;
+export function disableDialogs() {
+  if (disableDialogsPlugin) {
+    if (!plugins.includes(disableDialogsPlugin)) {
+      plugins.push(disableDialogsPlugin);
+    }
+
+    return disableDialogsPlugin;
+  }
+
+  const plugin = {
+    stopped: false,
+    init: async (browser: Puppeteer.Browser) => {
+      browser.on('targetcreated', plugin.onPageCreated);
+
+      browserEvents.once('close', () => {
+        browser.off('targetcreated', plugin.onPageCreated);
+      });
+
+      await plugin.restart();
+    },
+    restart: async () => {
+      plugin.stopped = false;
+    },
+    stop: async () => {
+      plugin.stopped = true;
+    },
+    onPageCreated: async (target: Puppeteer.Target) => {
+      if (target.type() !== 'page') return;
+
+      const page = await target.page();
+
+      page.on('dialog', plugin.onDialog);
+
+      browserEvents.once('close', () => {
+        page.off('dialog', plugin.onDialog);
+      });
+    },
+    onDialog: async (dialog: Puppeteer.Dialog) => {
+      const handled = (dialog as any)._handled;
+
+      if (handled) return;
+      if (plugin.stopped) return;
+
+      await dialog.dismiss();
+    }
+  };
+
+  disableDialogsPlugin = plugin;
   plugins.push(plugin);
 
   return { restart: plugin.restart, stop: plugin.stop };
