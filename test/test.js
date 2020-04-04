@@ -17,6 +17,7 @@ describe('Original methods', () => {
 });
 
 describe('PuppeteerPro', () => {
+
   const anonymizeTest = plugin => async browser => {
     let page;
 
@@ -56,7 +57,7 @@ describe('PuppeteerPro', () => {
       const getResult = async () => {
         try {
           await page.goto('https://bot.sannysoft.com');
-          await sleep(100);
+          await sleep(1000);
 
           return await page.evaluate(() => document.querySelector('table').querySelectorAll('.failed').length === 0);
         }
@@ -110,10 +111,48 @@ describe('PuppeteerPro', () => {
     }
   };
 
+  const disableDialogsTest = plugin => async browser => {
+    let page;
+
+    try {
+      browser = browser || await PuppeteerPro.launch();
+      page = await browser.newPage();
+
+      const getResult = async () => {
+        let result = true;
+
+        page.once('dialog', async dialog => {
+          await sleep(100);
+          if (!dialog._handled) {
+            result = false;
+            await dialog.dismiss();
+          }
+        });
+
+        await page.evaluate(() => alert('1'));
+
+        return result;
+      };
+
+      expect(await getResult()).to.be.true;
+
+      await plugin.stop();
+      expect(await getResult()).to.be.false;
+
+      await plugin.restart();
+      expect(await getResult()).to.be.true;
+    }
+    finally {
+      if (page) await page.close();
+      if (browser) await browser.close();
+    }
+  };
+
   const plugins = [
     { describe: 'can anonymize user agent', method: 'anonymizeUserAgent', args: [], test: anonymizeTest },
     { describe: 'can avoid detection', method: 'avoidDetection', args: [], test: avoidDetectionTest },
-    { describe: 'can block resources', method: 'blockResources', args: ['document'], test: blockResourcesTest }
+    { describe: 'can block resources', method: 'blockResources', args: ['document'], test: blockResourcesTest },
+    { describe: 'can disable dialogs', method: 'disableDialogs', args: [], test: disableDialogsTest }
   ];
 
   let numFinished = 0;
