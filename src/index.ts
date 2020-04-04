@@ -5,10 +5,6 @@ import * as events from 'events';
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
 
-if (!Puppeteer) {
-  throw new Error('Please install puppeteer');
-}
-
 import * as errors from 'puppeteer/Errors';
 import * as devices from 'puppeteer/DeviceDescriptors';
 
