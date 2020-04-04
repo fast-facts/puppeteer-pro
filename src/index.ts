@@ -72,6 +72,12 @@ interface Plugin {
   onRequest?: (request: Puppeteer.Request) => Promise<void>;
   onDialog?: (dialog: Puppeteer.Dialog) => Promise<void>;
 }
+interface PluginMethods {
+  restart: () => Promise<void>;
+  stop: () => Promise<void>;
+}
+
+const pickPluginMethods = (p: Plugin): PluginMethods => ({ restart: p.restart, stop: p.stop });
 
 let plugins: Plugin[] = [];
 export function clearPlugins() {
@@ -79,13 +85,13 @@ export function clearPlugins() {
 }
 
 let anonymizeUserAgentPlugin: Plugin;
-export function anonymizeUserAgent() {
+export function anonymizeUserAgent(): PluginMethods {
   if (anonymizeUserAgentPlugin) {
     if (!plugins.includes(anonymizeUserAgentPlugin)) {
       plugins.push(anonymizeUserAgentPlugin);
     }
 
-    return anonymizeUserAgentPlugin;
+    return pickPluginMethods(anonymizeUserAgentPlugin);
   }
 
   interface Page {
@@ -154,17 +160,17 @@ export function anonymizeUserAgent() {
   anonymizeUserAgentPlugin = plugin;
   plugins.push(plugin);
 
-  return { restart: plugin.restart, stop: plugin.stop };
+  return pickPluginMethods(plugin);
 }
 
 let avoidDetectionPlugin: Plugin;
-export function avoidDetection() {
+export function avoidDetection(): PluginMethods {
   if (avoidDetectionPlugin) {
     if (!plugins.includes(avoidDetectionPlugin)) {
       plugins.push(avoidDetectionPlugin);
     }
 
-    return avoidDetectionPlugin;
+    return pickPluginMethods(avoidDetectionPlugin);
   }
 
   const pluginDependency = anonymizeUserAgent();
@@ -209,18 +215,18 @@ export function avoidDetection() {
   avoidDetectionPlugin = plugin;
   plugins.push(plugin);
 
-  return { restart: plugin.restart, stop: plugin.stop };
+  return pickPluginMethods(plugin);
 }
 
 type resourceType = 'document' | 'stylesheet' | 'image' | 'media' | 'font' | 'script' | 'texttrack' | 'xhr' | 'fetch' | 'eventsource' | 'websocket' | 'manifest' | 'other';
 let blockResourcesPlugin: Plugin;
-export function blockResources(...resources: resourceType[]) {
+export function blockResources(...resources: resourceType[]): PluginMethods {
   if (blockResourcesPlugin) {
     if (!plugins.includes(blockResourcesPlugin)) {
       plugins.push(blockResourcesPlugin);
     }
 
-    return blockResourcesPlugin;
+    return pickPluginMethods(blockResourcesPlugin);
   }
 
   const plugin = {
@@ -264,17 +270,17 @@ export function blockResources(...resources: resourceType[]) {
   blockResourcesPlugin = plugin;
   plugins.push(plugin);
 
-  return { restart: plugin.restart, stop: plugin.stop };
+  return pickPluginMethods(plugin);
 }
 
 let disableDialogsPlugin: Plugin;
-export function disableDialogs() {
+export function disableDialogs(): PluginMethods {
   if (disableDialogsPlugin) {
     if (!plugins.includes(disableDialogsPlugin)) {
       plugins.push(disableDialogsPlugin);
     }
 
-    return disableDialogsPlugin;
+    return pickPluginMethods(disableDialogsPlugin);
   }
 
   const plugin = {
@@ -318,5 +324,5 @@ export function disableDialogs() {
   disableDialogsPlugin = plugin;
   plugins.push(plugin);
 
-  return { restart: plugin.restart, stop: plugin.stop };
+  return pickPluginMethods(plugin);
 }
