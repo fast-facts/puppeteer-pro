@@ -8,7 +8,7 @@
     "prebuild": "npm run clean",
     "build": "tsc",
     "postbuild": "npm run copy:injections && npm run copy:files",
-    "copy:injections": "copyfiles -f src/injections/* dist/injections/",
+    "copy:injections": "copyfiles -u 1 src/plugins/*/injections/* dist",
     "copy:files": "copyfiles package.json README.md LICENSE dist",
     "test": "mocha --timeout 30000"
   },

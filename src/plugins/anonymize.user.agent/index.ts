@@ -1,0 +1,55 @@
+import * as Puppeteer from 'puppeteer';
+
+import { Plugin } from '../../index';
+
+const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
+
+interface PageUserAgent {
+  target: Puppeteer.Page;
+  userAgent: string;
+  newUserAgent: string;
+}
+
+export class AnonymizeUserAgentPlugin extends Plugin {
+  private pages: PageUserAgent[] = [];
+
+  protected async afterLaunch(browser: Puppeteer.Browser) {
+    const _newPage = browser.newPage;
+    browser.newPage = async (): Promise<Puppeteer.Page> => {
+      const page = await _newPage.apply(browser);
+      await sleep(100); // Sleep to allow user agent to set
+      return page;
+    };
+  }
+
+  protected async onClose() {
+    this.pages = [];
+  }
+
+  protected async onPageCreated(page: Puppeteer.Page) {
+    const userAgent = await page.browser().userAgent();
+    const newUserAgent = userAgent
+      .replace('HeadlessChrome/', 'Chrome/')
+      .replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
+
+    this.pages.push({ target: page, userAgent, newUserAgent });
+
+    await page.setUserAgent(newUserAgent);
+  }
+
+  protected async beforeRestart() {
+    for (const page of this.pages) {
+      if (page.target.isClosed()) continue;
+
+      await page.target.setUserAgent(page.newUserAgent);
+    }
+  }
+
+  protected async afterStop() {
+    for (const page of this.pages) {
+      if (page.target.isClosed()) continue;
+
+      await page.target.setUserAgent(page.userAgent);
+    }
+  }
+}

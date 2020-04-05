@@ -1,7 +1,4 @@
-import * as crypto from 'crypto';
 import * as events from 'events';
-import * as fs from 'fs';
-import * as path from 'path';
 
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
@@ -61,11 +58,9 @@ export function createBrowserFetcher(options?: Puppeteer.FetcherOptions): Puppet
   return Puppeteer.createBrowserFetcher(options);
 }
 
-// Added methods
-const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
-
+// PuppeteerPro
 let interceptions = 0;
-class Plugin {
+export class Plugin {
   protected browser: Puppeteer.Browser | null = null;
   private initialized = false;
   private startCounter = 0;
@@ -98,6 +93,8 @@ class Plugin {
     this.turnOffOnClose.push(() => browser.off('targetcreated', thisOnTargetCreated));
 
     this.initialized = true;
+
+    this.dependencies.forEach(x => x.init(browser));
 
     return this.afterLaunch(browser);
   }
@@ -190,244 +187,38 @@ class Plugin {
 }
 
 let plugins: Plugin[] = [];
-export function clearPlugins() {
-  plugins = [];
-}
+export function addPlugin(plugin: Plugin) { plugins.push(plugin); }
+export function clearPlugins() { plugins = []; }
 
-interface PageUserAgent {
-  target: Puppeteer.Page;
-  userAgent: string;
-  newUserAgent: string;
-}
-class AnonymizeUserAgentPlugin extends Plugin {
-  private pages: PageUserAgent[] = [];
-
-  protected async afterLaunch(browser: Puppeteer.Browser) {
-    const _newPage = browser.newPage;
-    browser.newPage = async (): Promise<Puppeteer.Page> => {
-      const page = await _newPage.apply(browser);
-      await sleep(100); // Sleep to allow user agent to set
-      return page;
-    };
-  }
-
-  protected async onClose() {
-    this.pages = [];
-  }
-
-  protected async onPageCreated(page: Puppeteer.Page) {
-    const userAgent = await page.browser().userAgent();
-    const newUserAgent = userAgent
-      .replace('HeadlessChrome/', 'Chrome/')
-      .replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
-
-    this.pages.push({ target: page, userAgent, newUserAgent });
-
-    await page.setUserAgent(newUserAgent);
-  }
-
-  protected async beforeRestart() {
-    for (const page of this.pages) {
-      if (page.target.isClosed()) continue;
-
-      await page.target.setUserAgent(page.newUserAgent);
-    }
-  }
-
-  protected async afterStop() {
-    for (const page of this.pages) {
-      if (page.target.isClosed()) continue;
-
-      await page.target.setUserAgent(page.userAgent);
-    }
-  }
-}
-
+import { AnonymizeUserAgentPlugin } from './plugins/anonymize.user.agent/index';
 export function anonymizeUserAgent(): AnonymizeUserAgentPlugin {
   const plugin = new AnonymizeUserAgentPlugin();
   plugins.push(plugin);
   return plugin;
 }
 
-class AvoidDetectionPlugin extends Plugin {
-  dependencies = [anonymizeUserAgent()];
-  injectionsFolder = path.resolve(`${__dirname}/injections`);
-  injections = fs.readdirSync(this.injectionsFolder).map(fileName => require(`${this.injectionsFolder}/${fileName}`));
-
-  protected async onPageCreated(page: Puppeteer.Page) {
-    await page.exposeFunction('isStopped', () => this.isStopped);
-
-    for (const injection of this.injections) {
-      await page.evaluateOnNewDocument(injection);
-    }
-  }
-}
-
+import { AvoidDetectionPlugin } from './plugins/avoid.detection';
 export function avoidDetection(): AvoidDetectionPlugin {
   const plugin = new AvoidDetectionPlugin();
   plugins.push(plugin);
   return plugin;
 }
 
-type Resource = 'document' | 'stylesheet' | 'image' | 'media' | 'font' | 'script' | 'texttrack' | 'xhr' | 'fetch' | 'eventsource' | 'websocket' | 'manifest' | 'other';
-class BlockResourcesPlugin extends Plugin {
-  requiresInterception = true;
-  blockResources: Resource[];
-
-  constructor(resources: Resource[] = []) {
-    super();
-
-    this.blockResources = resources;
-  }
-
-  protected async processRequest(request: Puppeteer.Request) {
-    if (this.blockResources.includes(request.resourceType())) {
-      request.abort();
-    } else {
-      request.continue();
-    }
-  }
-}
-
+import { BlockResourcesPlugin, Resource } from './plugins/block.resources';
 export function blockResources(...resources: Resource[]): BlockResourcesPlugin {
   const plugin = new BlockResourcesPlugin(resources);
   plugins.push(plugin);
   return plugin;
 }
 
-class DisableDialogsPlugin extends Plugin {
-  protected async processDialog(dialog: Puppeteer.Dialog) {
-    dialog.dismiss();
-  }
-}
-
+import { DisableDialogsPlugin } from './plugins/disable.dialogs';
 export function disableDialogs(): DisableDialogsPlugin {
   const plugin = new DisableDialogsPlugin();
   plugins.push(plugin);
   return plugin;
 }
 
-interface ManageCookiesOption {
-  saveLocation: string;
-  mode: 'manual' | 'monitor';
-  stringify?: (cookies: Puppeteer.Cookie[]) => string;
-  parse?: (cookies: string) => Puppeteer.Cookie[];
-  disableWarning?: boolean;
-}
-
-// https://gist.github.com/jeroenvisser101/636030fe66ea929b63a33f5cb3a711ad
-class ManageCookiesPlugin extends Plugin {
-  private saveLocation = '';
-  private mode = '';
-  private stringify = (cookies: Puppeteer.Cookie[]) => JSON.stringify(cookies);
-  private parse = (cookies: string) => JSON.parse(cookies);
-  private disableWarning = false;
-
-  constructor(opts: ManageCookiesOption) {
-    super();
-
-    // Need to find a better typescript way of doing this
-    this.saveLocation = opts.saveLocation || this.saveLocation;
-    this.mode = opts.mode || this.mode;
-    this.stringify = opts.stringify || this.stringify;
-    this.parse = opts.parse || this.parse;
-    this.disableWarning = opts.disableWarning || this.disableWarning;
-
-    if (this.disableWarning !== true) {
-      // tslint:disable-next-line: no-console
-      console.warn('Warning: Exposing cookies in an unprotected manner can compromise your security. Add the `disableWarning` flag to remove this message.');
-    }
-  }
-
-  protected async afterLaunch() {
-    this.watchCookies();
-  }
-
-  protected async afterRestart() {
-    this.watchCookies();
-  }
-
-  async save() {
-    if (this.isStopped) return;
-    if (this.mode !== 'manual') return;
-
-    const page = await this.getFirstPage();
-    if (!page) return;
-
-    const cookiesString = this.stringify(await this.getCookies());
-    fs.writeFileSync(this.saveLocation, cookiesString);
-  }
-
-  async load() {
-    if (this.isStopped) return;
-    if (this.mode !== 'manual') return;
-
-    const page = await this.getFirstPage();
-    if (!page) return;
-
-    const requiresRealPage = page.url() === 'about:blank';
-
-    if (fs.existsSync(this.saveLocation)) {
-      if (requiresRealPage) {
-        await page.goto('http://www.google.com');
-      }
-
-      const cookies = this.parse(fs.readFileSync(this.saveLocation).toString() || '[]');
-      await page.setCookie(...cookies);
-
-      if (requiresRealPage) {
-        await page.goBack();
-      }
-    }
-  }
-
-  async clear() {
-    if (this.isStopped) return;
-
-    const page = await this.getFirstPage();
-    if (!page) return;
-
-    await page.deleteCookie(...await this.getCookies());
-
-    if (fs.existsSync(this.saveLocation)) {
-      fs.unlinkSync(this.saveLocation);
-    }
-  }
-
-  private async watchCookies() {
-    if (this.isStopped) return;
-    if (this.mode !== 'monitor') return;
-
-    const page = await this.getFirstPage();
-    if (!page) return;
-
-    const hash = (x: string) => crypto.createHash('md5').update(x).digest('hex');
-
-    let oldHash = '';
-    while (!this.isStopped) {
-      const cookiesString = this.stringify(await this.getCookies());
-      const newHash = hash(cookiesString);
-
-      if (oldHash !== newHash) {
-        fs.writeFileSync(this.saveLocation, cookiesString);
-        oldHash = newHash;
-      }
-
-      await sleep(300);
-    }
-  }
-
-  private async getCookies() {
-    const page = await this.getFirstPage();
-    if (!page) return [];
-
-    const client = await page.target().createCDPSession();
-    const { cookies } = await client.send("Network.getAllCookies", {}) as { cookies: Puppeteer.Cookie[] };
-
-    return cookies;
-  }
-}
-
+import { ManageCookiesPlugin, ManageCookiesOption } from './plugins/manage.cookies';
 export function manageCookies(opts: ManageCookiesOption): ManageCookiesPlugin {
   const plugin = new ManageCookiesPlugin(opts);
   plugins.push(plugin);
