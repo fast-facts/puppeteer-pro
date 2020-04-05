@@ -9,6 +9,8 @@
         "arrays": "only-multiline"
       }
     ],
+    "max-classes-per-file": false,
+    "no-empty": false,
     "no-return-await": true,
     "semicolon": [
       true,
