@@ -1,4 +1,4 @@
-// import * as crypto from 'crypto';
+import * as crypto from 'crypto';
 import * as events from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -66,7 +66,7 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 
 let interceptions = 0;
 class Plugin {
-  private browser: Puppeteer.Browser | null = null;
+  protected browser: Puppeteer.Browser | null = null;
   private initialized = false;
   private startCounter = 0;
   private turnOffOnClose: (() => void)[] = [];
@@ -86,6 +86,7 @@ class Plugin {
 
       this.onClose();
 
+      this.browser = null;
       this.initialized = false;
       this.startCounter = 0;
     });
@@ -100,10 +101,10 @@ class Plugin {
 
     return this.afterLaunch(browser);
   }
-  async afterLaunch(_browser: Puppeteer.Browser) { }
-  async onClose() { }
+  protected async afterLaunch(_browser: Puppeteer.Browser) { }
+  protected async onClose() { }
 
-  async onTargetCreated(target: Puppeteer.Target) {
+  protected async onTargetCreated(target: Puppeteer.Target) {
     if (target.type() !== 'page') return;
     const page = await target.page();
     if (page.isClosed()) return;
@@ -122,18 +123,18 @@ class Plugin {
 
     await this.onPageCreated(page);
   }
-  async onPageCreated(_page: Puppeteer.Page) { }
+  protected async onPageCreated(_page: Puppeteer.Page) { }
 
-  async onRequest(request: Puppeteer.Request) {
+  protected async onRequest(request: Puppeteer.Request) {
     const interceptionHandled = (request as any)._interceptionHandled;
     if (interceptionHandled) return;
     if (this.isStopped) return request.continue();
 
     await this.processRequest(request);
   }
-  async processRequest(_request: Puppeteer.Request) { }
+  protected async processRequest(_request: Puppeteer.Request) { }
 
-  async onDialog(dialog: Puppeteer.Dialog) {
+  protected async onDialog(dialog: Puppeteer.Dialog) {
     const handled = (dialog as any)._handled;
 
     if (handled) return;
@@ -141,9 +142,9 @@ class Plugin {
 
     await this.processDialog(dialog);
   }
-  async processDialog(_dialog: Puppeteer.Dialog) { }
+  protected async processDialog(_dialog: Puppeteer.Dialog) { }
 
-  async beforeRestart() { }
+  protected async beforeRestart() { }
   async restart() {
     await this.beforeRestart();
 
@@ -154,9 +155,9 @@ class Plugin {
 
     await this.afterRestart();
   }
-  async afterRestart() { }
+  protected async afterRestart() { }
 
-  async beforeStop() { }
+  protected async beforeStop() { }
   async stop() {
     await this.beforeStop();
 
@@ -175,7 +176,17 @@ class Plugin {
 
     await this.afterStop();
   }
-  async afterStop() { }
+  protected async afterStop() { }
+
+  protected async getFirstPage() {
+    if (!this.browser) return null;
+
+    const pages = await this.browser.pages();
+    const openPages = pages.filter(x => !x.isClosed());
+    const activePages = pages.filter(x => x.url() !== 'about:blank');
+
+    return activePages[0] || openPages[0];
+  }
 }
 
 let plugins: Plugin[] = [];
@@ -191,7 +202,7 @@ interface PageUserAgent {
 class AnonymizeUserAgentPlugin extends Plugin {
   private pages: PageUserAgent[] = [];
 
-  async afterLaunch(browser: Puppeteer.Browser) {
+  protected async afterLaunch(browser: Puppeteer.Browser) {
     const _newPage = browser.newPage;
     browser.newPage = async (): Promise<Puppeteer.Page> => {
       const page = await _newPage.apply(browser);
@@ -200,11 +211,11 @@ class AnonymizeUserAgentPlugin extends Plugin {
     };
   }
 
-  async onClose() {
+  protected async onClose() {
     this.pages = [];
   }
 
-  async onPageCreated(page: Puppeteer.Page) {
+  protected async onPageCreated(page: Puppeteer.Page) {
     const userAgent = await page.browser().userAgent();
     const newUserAgent = userAgent
       .replace('HeadlessChrome/', 'Chrome/')
@@ -215,7 +226,7 @@ class AnonymizeUserAgentPlugin extends Plugin {
     await page.setUserAgent(newUserAgent);
   }
 
-  async beforeRestart() {
+  protected async beforeRestart() {
     for (const page of this.pages) {
       if (page.target.isClosed()) continue;
 
@@ -223,7 +234,7 @@ class AnonymizeUserAgentPlugin extends Plugin {
     }
   }
 
-  async afterStop() {
+  protected async afterStop() {
     for (const page of this.pages) {
       if (page.target.isClosed()) continue;
 
@@ -232,15 +243,9 @@ class AnonymizeUserAgentPlugin extends Plugin {
   }
 }
 
-let anonymizeUserAgentPlugin: AnonymizeUserAgentPlugin;
 export function anonymizeUserAgent(): AnonymizeUserAgentPlugin {
-  const plugin = anonymizeUserAgentPlugin || new AnonymizeUserAgentPlugin();
-  anonymizeUserAgentPlugin = plugin;
-
-  if (!plugins.includes(plugin)) {
-    plugins.push(plugin);
-  }
-
+  const plugin = new AnonymizeUserAgentPlugin();
+  plugins.push(plugin);
   return plugin;
 }
 
@@ -249,7 +254,7 @@ class AvoidDetectionPlugin extends Plugin {
   injectionsFolder = path.resolve(`${__dirname}/injections`);
   injections = fs.readdirSync(this.injectionsFolder).map(fileName => require(`${this.injectionsFolder}/${fileName}`));
 
-  async onPageCreated(page: Puppeteer.Page) {
+  protected async onPageCreated(page: Puppeteer.Page) {
     await page.exposeFunction('isStopped', () => this.isStopped);
 
     for (const injection of this.injections) {
@@ -258,15 +263,9 @@ class AvoidDetectionPlugin extends Plugin {
   }
 }
 
-let avoidDetectionPlugin: AvoidDetectionPlugin;
 export function avoidDetection(): AvoidDetectionPlugin {
-  const plugin = avoidDetectionPlugin || new AvoidDetectionPlugin();
-  avoidDetectionPlugin = plugin;
-
-  if (!plugins.includes(plugin)) {
-    plugins.push(plugin);
-  }
-
+  const plugin = new AvoidDetectionPlugin();
+  plugins.push(plugin);
   return plugin;
 }
 
@@ -281,7 +280,7 @@ class BlockResourcesPlugin extends Plugin {
     this.blockResources = resources;
   }
 
-  async processRequest(request: Puppeteer.Request) {
+  protected async processRequest(request: Puppeteer.Request) {
     if (this.blockResources.includes(request.resourceType())) {
       request.abort();
     } else {
@@ -290,32 +289,147 @@ class BlockResourcesPlugin extends Plugin {
   }
 }
 
-let blockResourcesPlugin: BlockResourcesPlugin;
 export function blockResources(...resources: Resource[]): BlockResourcesPlugin {
-  const plugin = blockResourcesPlugin || new BlockResourcesPlugin(resources);
-  blockResourcesPlugin = plugin;
-
-  if (!plugins.includes(plugin)) {
-    plugins.push(plugin);
-  }
-
+  const plugin = new BlockResourcesPlugin(resources);
+  plugins.push(plugin);
   return plugin;
 }
 
 class DisableDialogsPlugin extends Plugin {
-  async processDialog(dialog: Puppeteer.Dialog) {
+  protected async processDialog(dialog: Puppeteer.Dialog) {
     dialog.dismiss();
   }
 }
 
-let disableDialogsPlugin: DisableDialogsPlugin;
 export function disableDialogs(): DisableDialogsPlugin {
-  const plugin = disableDialogsPlugin || new DisableDialogsPlugin();
-  disableDialogsPlugin = plugin;
+  const plugin = new DisableDialogsPlugin();
+  plugins.push(plugin);
+  return plugin;
+}
 
-  if (!plugins.includes(plugin)) {
-    plugins.push(plugin);
+interface ManageCookiesOption {
+  saveLocation: string;
+  mode: 'manual' | 'monitor';
+  stringify?: (cookies: Puppeteer.Cookie[]) => string;
+  parse?: (cookies: string) => Puppeteer.Cookie[];
+  disableWarning?: boolean;
+}
+
+// https://gist.github.com/jeroenvisser101/636030fe66ea929b63a33f5cb3a711ad
+class ManageCookiesPlugin extends Plugin {
+  private saveLocation = '';
+  private mode = '';
+  private stringify = (cookies: Puppeteer.Cookie[]) => JSON.stringify(cookies);
+  private parse = (cookies: string) => JSON.parse(cookies);
+  private disableWarning = false;
+
+  constructor(opts: ManageCookiesOption) {
+    super();
+
+    // Need to find a better typescript way of doing this
+    this.saveLocation = opts.saveLocation || this.saveLocation;
+    this.mode = opts.mode || this.mode;
+    this.stringify = opts.stringify || this.stringify;
+    this.parse = opts.parse || this.parse;
+    this.disableWarning = opts.disableWarning || this.disableWarning;
+
+    if (this.disableWarning !== true) {
+      // tslint:disable-next-line: no-console
+      console.warn('Warning: Exposing cookies in an unprotected manner can compromise your security. Add the `disableWarning` flag to remove this message.');
+    }
   }
 
+  protected async afterLaunch() {
+    this.watchCookies();
+  }
+
+  protected async afterRestart() {
+    this.watchCookies();
+  }
+
+  async save() {
+    if (this.isStopped) return;
+    if (this.mode !== 'manual') return;
+
+    const page = await this.getFirstPage();
+    if (!page) return;
+
+    const cookiesString = this.stringify(await this.getCookies());
+    fs.writeFileSync(this.saveLocation, cookiesString);
+  }
+
+  async load() {
+    if (this.isStopped) return;
+    if (this.mode !== 'manual') return;
+
+    const page = await this.getFirstPage();
+    if (!page) return;
+
+    const requiresRealPage = page.url() === 'about:blank';
+
+    if (fs.existsSync(this.saveLocation)) {
+      if (requiresRealPage) {
+        await page.goto('http://www.google.com');
+      }
+
+      const cookies = this.parse(fs.readFileSync(this.saveLocation).toString() || '[]');
+      await page.setCookie(...cookies);
+
+      if (requiresRealPage) {
+        await page.goBack();
+      }
+    }
+  }
+
+  async clear() {
+    if (this.isStopped) return;
+
+    const page = await this.getFirstPage();
+    if (!page) return;
+
+    await page.deleteCookie(...await this.getCookies());
+
+    if (fs.existsSync(this.saveLocation)) {
+      fs.unlinkSync(this.saveLocation);
+    }
+  }
+
+  private async watchCookies() {
+    if (this.isStopped) return;
+    if (this.mode !== 'monitor') return;
+
+    const page = await this.getFirstPage();
+    if (!page) return;
+
+    const hash = (x: string) => crypto.createHash('md5').update(x).digest('hex');
+
+    let oldHash = '';
+    while (!this.isStopped) {
+      const cookiesString = this.stringify(await this.getCookies());
+      const newHash = hash(cookiesString);
+
+      if (oldHash !== newHash) {
+        fs.writeFileSync(this.saveLocation, cookiesString);
+        oldHash = newHash;
+      }
+
+      await sleep(300);
+    }
+  }
+
+  private async getCookies() {
+    const page = await this.getFirstPage();
+    if (!page) return [];
+
+    const client = await page.target().createCDPSession();
+    const { cookies } = await client.send("Network.getAllCookies", {}) as { cookies: Puppeteer.Cookie[] };
+
+    return cookies;
+  }
+}
+
+export function manageCookies(opts: ManageCookiesOption): ManageCookiesPlugin {
+  const plugin = new ManageCookiesPlugin(opts);
+  plugins.push(plugin);
   return plugin;
 }
