@@ -71,6 +71,10 @@ export class Plugin {
   get isInitialized() { return this.initialized; }
   get isStopped() { return this.startCounter === 0; }
 
+  protected async addDependency(plugin: Plugin) {
+    this.dependencies.push(plugin);
+  }
+
   async init(browser: Puppeteer.Browser) {
     if (this.initialized) return;
 
@@ -98,6 +102,7 @@ export class Plugin {
 
     return this.afterLaunch(browser);
   }
+
   protected async afterLaunch(_browser: Puppeteer.Browser) { }
   protected async onClose() { }
 

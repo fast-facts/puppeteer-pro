@@ -14,13 +14,12 @@ class TestPlugin extends PuppeteerPro.Plugin {
   set state(state) { this._state = state; }
 }
 
-const addPluginTest = plugin => async browserWSEndpoint => {
+const addTest = plugin => async browserWSEndpoint => {
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
   try {
     const getResult = async () => {
       const page = await browser.newPage();
-      await sleep(200);
 
       const works = plugin.state;
       plugin.state = false;
@@ -36,13 +35,12 @@ const addPluginTest = plugin => async browserWSEndpoint => {
   }
 };
 
-const stopPluginTest = plugin => async browserWSEndpoint => {
+const stopTest = plugin => async browserWSEndpoint => {
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
   try {
     const getResult = async () => {
       const page = await browser.newPage();
-      await sleep(200);
 
       const works = plugin.state;
       plugin.state = false;
@@ -61,13 +59,12 @@ const stopPluginTest = plugin => async browserWSEndpoint => {
   }
 };
 
-const restartPluginTest = plugin => async browserWSEndpoint => {
+const restartTest = plugin => async browserWSEndpoint => {
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
   try {
     const getResult = async () => {
       const page = await browser.newPage();
-      await sleep(200);
 
       const works = plugin.state;
       plugin.state = false;
@@ -89,19 +86,54 @@ const restartPluginTest = plugin => async browserWSEndpoint => {
   }
 };
 
+const dependencyTest = plugin => async browserWSEndpoint => {
+  const dependency = new TestPlugin();
+  plugin.addDependency(dependency);
+
+  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+
+  try {
+    const getResult = async () => {
+      const page = await browser.newPage();
+
+      const works = plugin.state && dependency.state;
+      plugin.state = false;
+      dependency.state = false;
+
+      await page.close();
+      return works;
+    };
+
+    expect(await getResult()).to.equal(true);
+
+    await plugin.stop();
+    expect(await getResult()).to.equal(false);
+
+    await plugin.restart();
+    expect(await getResult()).to.equal(true);
+  }
+  finally {
+    if (browser) await browser.close();
+  }
+};
+
 const pluginTests = {
   describe: 'PuppeteerPro',
   tests: [{
-    describe: 'can add plugins',
-    tests: [addPluginTest]
+    describe: 'can add a plugin',
+    tests: [addTest]
   },
   {
-    describe: 'can stop plugins',
-    tests: [stopPluginTest]
+    describe: 'can stop a plugin',
+    tests: [stopTest]
   },
   {
-    describe: 'can restart plugins',
-    tests: [restartPluginTest]
+    describe: 'can restart a plugin',
+    tests: [restartTest]
+  },
+  {
+    describe: 'can have a dependency',
+    tests: [dependencyTest]
   }]
 };
 
@@ -116,10 +148,7 @@ const runRecursiveTests = x => {
         if (test.describe) {
           return runRecursiveTests(test);
         } else {
-          before(async () => {
-            await waitUntil(() => testsFinished === i);
-          });
-
+          before(async () => { await waitUntil(() => testsFinished === i); });
           after(() => { testsFinished++; });
 
           beforeEach(() => {

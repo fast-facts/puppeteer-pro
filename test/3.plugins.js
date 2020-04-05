@@ -51,10 +51,7 @@ const runRecursiveTests = x => {
         if (test.describe) {
           return runRecursiveTests(test);
         } else {
-          before(async () => {
-            await waitUntil(() => testsFinished === i);
-          });
-
+          before(async () => { await waitUntil(() => testsFinished === i); });
           after(() => { testsFinished++; });
 
           beforeEach(() => {
