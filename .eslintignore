@@ -1,4 +1,6 @@
 *.js
 !index.js
-!src/injections/*.js
+!src/plugins/*/injections/*.js
+
 !test/*.js
+!src/plugins/*/*.js

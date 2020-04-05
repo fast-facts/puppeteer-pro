@@ -102,6 +102,8 @@ export class Plugin {
   protected async onClose() { }
 
   protected async onTargetCreated(target: Puppeteer.Target) {
+    if (this.isStopped) return;
+
     if (target.type() !== 'page') return;
     const page = await target.page();
     if (page.isClosed()) return;
@@ -188,7 +190,12 @@ export class Plugin {
 
 let plugins: Plugin[] = [];
 export function addPlugin(plugin: Plugin) { plugins.push(plugin); }
-export function clearPlugins() { plugins = []; }
+export function clearPlugins() {
+  for (const plugin of plugins) {
+    plugin.stop();
+  }
+  plugins = [];
+}
 
 import { AnonymizeUserAgentPlugin } from './plugins/anonymize.user.agent/index';
 export function anonymizeUserAgent(): AnonymizeUserAgentPlugin {
