@@ -15,9 +15,9 @@ export class BlockResourcesPlugin extends Plugin {
 
   protected async processRequest(request: Puppeteer.Request) {
     if (this.blockResources.includes(request.resourceType())) {
-      request.abort();
+      await request.abort();
     } else {
-      request.continue();
+      await request.continue();
     }
   }
 }

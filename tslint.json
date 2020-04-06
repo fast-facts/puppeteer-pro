@@ -11,6 +11,7 @@
     ],
     "max-classes-per-file": false,
     "no-empty": false,
+    "no-floating-promises": true,
     "no-return-await": true,
     "semicolon": [
       true,
