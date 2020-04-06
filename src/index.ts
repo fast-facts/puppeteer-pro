@@ -80,14 +80,14 @@ export class Plugin {
 
     this.browser = browser;
 
-    browserEvents.once('close', () => {
+    browserEvents.once('close', async () => {
       this.turnOffOnClose.forEach(fn => fn());
-
-      this.onClose();
 
       this.browser = null;
       this.initialized = false;
       this.startCounter = 0;
+
+      await this.onClose();
     });
 
     this.startCounter++;
@@ -171,8 +171,8 @@ export class Plugin {
     if (interceptions === 0 && this.browser) {
       const pages = await this.browser.pages();
 
-      pages.filter(x => !x.isClosed()).forEach((page: Puppeteer.Page) => {
-        page.setRequestInterception(false);
+      pages.filter(x => !x.isClosed()).forEach(async (page: Puppeteer.Page) => {
+        await page.setRequestInterception(false);
       });
     }
 
@@ -195,10 +195,11 @@ export class Plugin {
 
 let plugins: Plugin[] = [];
 export function addPlugin(plugin: Plugin) { plugins.push(plugin); }
-export function clearPlugins() {
-  for (const plugin of plugins) {
-    plugin.stop();
-  }
+export async function clearPlugins() {
+  plugins.forEach(async plugin => {
+    await plugin.stop();
+  });
+
   plugins = [];
 }
 

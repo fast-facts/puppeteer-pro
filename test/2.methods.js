@@ -9,6 +9,14 @@ const waitUntil = async func => { while (!func()) await sleep(200); };
 
 class TestPlugin extends PuppeteerPro.Plugin {
   constructor() { super(arguments); this.state = false; }
+  afterLaunch(browser) {
+    const _newPage = browser.newPage;
+    browser.newPage = async () => {
+      const page = await _newPage.apply(browser);
+      await sleep(100); // Sleep to allow user agent to set
+      return page;
+    };
+  }
   onPageCreated() { this.state = true; }
   get state() { return this._state; }
   set state(state) { this._state = state; }
@@ -132,7 +140,7 @@ const pluginTests = {
     tests: [restartTest]
   },
   {
-    describe: 'can have a dependency',
+    describe: 'can have a plugin with dependencies',
     tests: [dependencyTest]
   }]
 };
