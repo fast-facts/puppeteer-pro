@@ -32,10 +32,13 @@ const pluginTests = {
     describe: 'can manage cookies',
     tests: [{
       describe: 'in manual mode',
-      tests: [() => manageCookiesTest('manual')(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))]
+      tests: [() => manageCookiesTest.modes('manual')(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))]
     }, {
       describe: 'in monitor mode',
-      tests: [() => manageCookiesTest('monitor')(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'monitor', disableWarning: true }))]
+      tests: [() => manageCookiesTest.modes('monitor')(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'monitor', disableWarning: true }))]
+    }, {
+      describe: 'using profiles',
+      tests: [() => manageCookiesTest.profiles(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))]
     }]
   }]
 };
