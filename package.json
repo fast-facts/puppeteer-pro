@@ -1,7 +1,7 @@
 {
   "name": "puppeteer-pro",
-  "version": "1.0.5",
-  "description": "",
+  "version": "1.0.6",
+  "description": "A simple puppeteer wrapper to enable useful plugins with ease",
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
@@ -16,12 +16,21 @@
     "type": "git",
     "url": "git+https://github.com/ItzRabbs/puppeteer-pro.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "ItzRabbs",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ItzRabbs/puppeteer-pro/issues"
   },
   "homepage": "https://github.com/ItzRabbs/puppeteer-pro#readme",
+  "keywords": [
+    "puppeteer",
+    "chrome",
+    "automation",
+    "plugin",
+    "anonymize",
+    "detection",
+    "stealth"
+  ],
   "engines": {
     "node": ">=10.0.0"
   },
