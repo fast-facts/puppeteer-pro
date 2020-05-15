@@ -12,7 +12,9 @@ export class AvoidDetectionPlugin extends Plugin {
   dependencies = [new AnonymizeUserAgentPlugin()];
 
   protected async onPageCreated(page: Puppeteer.Page) {
-    await page.exposeFunction('isStopped', () => this.isStopped);
+    if (!(page as any)._pageBindings.has('isStopped')) {
+      await page.exposeFunction('isStopped', () => this.isStopped);
+    }
 
     for (const injection of injections) {
       await page.evaluateOnNewDocument(injection);
