@@ -17,7 +17,7 @@ module.exports = plugin => async browserWSEndpoint => {
         await page.goto('https://bot.sannysoft.com');
         await sleep(1000);
 
-        return await page.evaluate(() => document.querySelector('table').querySelectorAll('.failed:not(#hairline-feature)').length === 0);
+        return await page.evaluate(() => document.querySelector('table').querySelectorAll('.failed').length === 0);
       }
       catch (ex) {
         return false;
