@@ -225,8 +225,8 @@ export function blockResources(...resources: Resource[]): BlockResourcesPlugin {
 }
 
 import { DisableDialogsPlugin } from './plugins/disable.dialogs';
-export function disableDialogs(): DisableDialogsPlugin {
-  const plugin = new DisableDialogsPlugin();
+export function disableDialogs(logMessages = false): DisableDialogsPlugin {
+  const plugin = new DisableDialogsPlugin(logMessages);
   plugins.push(plugin);
   return plugin;
 }
