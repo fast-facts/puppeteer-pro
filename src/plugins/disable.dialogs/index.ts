@@ -13,7 +13,8 @@ export class DisableDialogsPlugin extends Plugin {
 
   protected async processDialog(dialog: Puppeteer.Dialog) {
     if (this.logMessages) {
-      console.log(dialog.message());
+      // tslint:disable-next-line: no-console
+      console.log(`Dialog message: ${dialog.message()}`);
     }
 
     await dialog.dismiss();
