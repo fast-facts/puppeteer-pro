@@ -118,6 +118,52 @@ export class Plugin {
       offOnClose.forEach(fn => fn());
     });
 
+    const requestHandlers: ((request: any) => void)[] = [];
+    page.on('request', request => {
+      const _respond = request.respond;
+      let responded = 0;
+      let respondArgs: IArguments;
+
+      const _abort = request.abort;
+      let aborted = 0;
+      let abortArgs: IArguments;
+
+      const _continue = request.continue;
+      let continued = 0;
+      let continueArgs: IArguments;
+
+      // tslint:disable-next-line: only-arrow-functions
+      const handleRequest = async function () {
+        const total = responded + aborted + continued;
+
+        if (!(request as any)._interceptionHandled) {
+          if (responded === 1) await _respond.apply(request, respondArgs);
+          else if (responded === 0 && aborted >= 1 && total === requestHandlers.length) await _abort.apply(request, abortArgs);
+          else if (continued === requestHandlers.length) await _continue.apply(request, continueArgs);
+        }
+      };
+
+      // tslint:disable-next-line: only-arrow-functions
+      request.respond = async function () { responded++; respondArgs = respondArgs || arguments; await handleRequest(); };
+      // tslint:disable-next-line: only-arrow-functions
+      request.abort = async function () { aborted++; abortArgs = abortArgs || arguments; await handleRequest(); };
+      // tslint:disable-next-line: only-arrow-functions
+      request.continue = async function () { continued++; continueArgs = continueArgs || arguments; await handleRequest(); };
+
+      requestHandlers.forEach(handler => handler(request));
+    });
+
+    const _pageOn = page.on;
+    page.on = function async(eventName, handler) {
+      if (eventName === 'request') {
+        requestHandlers.push(handler);
+
+        return page;
+      } else {
+        return _pageOn.call(page, eventName, handler);
+      }
+    };
+
     if (this.requiresInterception) {
       await page.setRequestInterception(true);
 
