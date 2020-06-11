@@ -64,7 +64,6 @@ export class Plugin {
   protected browser: Puppeteer.Browser | null = null;
   private initialized = false;
   private startCounter = 0;
-  private turnOffOnClose: (() => void)[] = [];
   protected dependencies: Plugin[] = [];
   protected requiresInterception = false;
 
@@ -80,8 +79,9 @@ export class Plugin {
 
     this.browser = browser;
 
+    const offOnClose: (() => void)[] = [];
     browserEvents.once('close', async () => {
-      this.turnOffOnClose.forEach(fn => fn());
+      offOnClose.forEach(fn => fn());
 
       this.browser = null;
       this.initialized = false;
@@ -94,7 +94,7 @@ export class Plugin {
 
     const thisOnTargetCreated = this.onTargetCreated.bind(this);
     browser.on('targetcreated', thisOnTargetCreated);
-    this.turnOffOnClose.push(() => browser.off('targetcreated', thisOnTargetCreated));
+    offOnClose.push(() => browser.off('targetcreated', thisOnTargetCreated));
 
     this.initialized = true;
 
@@ -113,17 +113,22 @@ export class Plugin {
     const page = await target.page();
     if (page.isClosed()) return;
 
+    const offOnClose: (() => void)[] = [];
+    page.once('close', async () => {
+      offOnClose.forEach(fn => fn());
+    });
+
     if (this.requiresInterception) {
       await page.setRequestInterception(true);
 
       const thisOnRequest = this.onRequest.bind(this);
       page.on('request', thisOnRequest);
-      this.turnOffOnClose.push(() => page.off('request', thisOnRequest));
+      offOnClose.push(() => page.off('request', thisOnRequest));
     }
 
     const thisOnDialog = this.onDialog.bind(this);
     page.on('dialog', thisOnDialog);
-    this.turnOffOnClose.push(() => page.off('dialog', thisOnDialog));
+    offOnClose.push(() => page.off('dialog', thisOnDialog));
 
     await this.onPageCreated(page);
   }
