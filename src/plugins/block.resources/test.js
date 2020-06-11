@@ -3,7 +3,20 @@ const chai = require('chai');
 
 const expect = chai.expect;
 
+class AbortPlugin extends PuppeteerPro.Plugin {
+  constructor() {
+    super();
+    this.requiresInterception = true;
+  }
+  async processRequest(request) {
+    await request.continue();
+  }
+}
+
+// Test multiple request handlers at once
 module.exports = plugin => async browserWSEndpoint => {
+  PuppeteerPro.addPlugin(new AbortPlugin());
+
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
   let page;
 
