@@ -3,10 +3,8 @@ import * as events from 'events';
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
 
-import * as errors from 'puppeteer/Errors';
-import * as devices from 'puppeteer/DeviceDescriptors';
-
-export { errors, devices };
+export const devices = Puppeteer.devices;
+export const errors = Puppeteer.errors;
 
 const browserEvents = new events.EventEmitter();
 
