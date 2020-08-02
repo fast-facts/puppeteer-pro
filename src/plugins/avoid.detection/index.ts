@@ -17,7 +17,7 @@ export class AvoidDetectionPlugin extends Plugin {
     }
 
     for (const injection of injections) {
-      await page.evaluateOnNewDocument(injection);
+      if (!page.isClosed()) await page.evaluateOnNewDocument(injection);
     }
   }
 }
