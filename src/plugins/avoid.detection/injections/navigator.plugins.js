@@ -41,7 +41,7 @@ module.exports = async () => {
       mimeTypeArray.forEach(x => mimeTypeArray[x.type] = x);
 
       Object.setPrototypeOf(mimeTypeArray, MimeTypeArray.prototype);
-      Object.defineProperty(navigator, 'mimeTypes', { get: () => mimeTypeArray });
+      Object.defineProperty(Object.getPrototypeOf(navigator), 'mimeTypes', { get: () => mimeTypeArray });
 
       // Plugins
       const pluginArray = _plugins
@@ -66,7 +66,7 @@ module.exports = async () => {
       ['namedItem', 'item', 'refresh'].forEach(x => pluginArray[x] = fn('PluginArray', x));
 
       Object.setPrototypeOf(pluginArray, PluginArray.prototype);
-      Object.defineProperty(navigator, 'plugins', { get: () => pluginArray });
+      Object.defineProperty(Object.getPrototypeOf(navigator), 'plugins', { get: () => pluginArray });
     }
   } catch (ex) { null; }
 };
