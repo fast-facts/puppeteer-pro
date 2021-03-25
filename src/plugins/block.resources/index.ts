@@ -13,8 +13,8 @@ export class BlockResourcesPlugin extends Plugin {
     this.blockResources = resources;
   }
 
-  protected async processRequest(request: Puppeteer.Request) {
-    if (this.blockResources.includes(request.resourceType())) {
+  protected async processRequest(request: Puppeteer.HTTPRequest) {
+    if (this.blockResources.includes(request.resourceType() as Resource)) {
       await request.abort();
     } else {
       await request.continue();

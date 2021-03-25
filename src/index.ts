@@ -3,13 +3,10 @@ import * as events from 'events';
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
 
-export const devices = Puppeteer.devices;
-export const errors = Puppeteer.errors;
-
 const browserEvents = new events.EventEmitter();
 
 export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppeteer.Browser> {
-  const browser = await Puppeteer.connect(options);
+  const browser = await Puppeteer.connect(options || {});
 
   for (const plugin of plugins) {
     await plugin.init(browser);
@@ -22,21 +19,11 @@ export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppe
   };
 
   return browser;
-}
-
-/** The default flags that Chromium will be launched with */
-export function defaultArgs(options?: Puppeteer.ChromeArgOptions): string[] {
-  return Puppeteer.defaultArgs(options);
-}
-
-/** Path where Puppeteer expects to find bundled Chromium */
-export function executablePath(): string {
-  return Puppeteer.executablePath();
 }
 
 /** The method launches a browser instance with given arguments. The browser will be closed when the parent node.js process is closed. */
 export async function launch(options?: Puppeteer.LaunchOptions): Promise<Puppeteer.Browser> {
-  const browser = await Puppeteer.launch({ defaultViewport: null, ...options });
+  const browser = await Puppeteer.launch({ defaultViewport: undefined, ...options });
 
   for (const plugin of plugins) {
     await plugin.init(browser);
@@ -49,11 +36,6 @@ export async function launch(options?: Puppeteer.LaunchOptions): Promise<Puppete
   };
 
   return browser;
-}
-
-/** This methods attaches Puppeteer to an existing Chromium instance. */
-export function createBrowserFetcher(options?: Puppeteer.FetcherOptions): Puppeteer.BrowserFetcher {
-  return Puppeteer.createBrowserFetcher(options);
 }
 
 // PuppeteerPro
@@ -108,7 +90,7 @@ export class Plugin {
     if (this.isStopped) return;
 
     if (target.type() !== 'page') return;
-    const page = await target.page();
+    const page = await target.page() as Puppeteer.Page;
     if (page.isClosed()) return;
 
     const offOnClose: (() => void)[] = [];
@@ -178,14 +160,14 @@ export class Plugin {
   }
   protected async onPageCreated(_page: Puppeteer.Page) { }
 
-  protected async onRequest(request: Puppeteer.Request) {
+  protected async onRequest(request: Puppeteer.HTTPRequest) {
     const interceptionHandled = (request as any)._interceptionHandled;
     if (interceptionHandled) return;
     if (this.isStopped) return request.continue();
 
     await this.processRequest(request);
   }
-  protected async processRequest(_request: Puppeteer.Request) { }
+  protected async processRequest(_request: Puppeteer.HTTPRequest) { }
 
   protected async onDialog(dialog: Puppeteer.Dialog) {
     const handled = (dialog as any)._handled;
