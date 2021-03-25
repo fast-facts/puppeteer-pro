@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Original methods', () => {
-  ['connect', 'defaultArgs', 'executablePath', 'launch', 'createBrowserFetcher'].map(x => {
+  ['connect', 'launch'].map(x => {
     it(`should have ${x}`, () => {
       expect(PuppeteerPro[x]).to.be.not.undefined;
     });
