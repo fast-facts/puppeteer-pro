@@ -22,7 +22,7 @@ export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppe
 }
 
 /** The method launches a browser instance with given arguments. The browser will be closed when the parent node.js process is closed. */
-export async function launch(options?: Puppeteer.LaunchOptions): Promise<Puppeteer.Browser> {
+export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.BrowserLaunchArgumentOptions & Puppeteer.BrowserConnectOptions): Promise<Puppeteer.Browser> {
   const browser = await Puppeteer.launch({ defaultViewport: undefined, ...options });
 
   for (const plugin of plugins) {
