@@ -1,6 +1,4 @@
-module.exports = async () => {
-  if (await window.isStopped()) return;
-
+module.exports = () => {
   try {
     const hasPlugins = navigator.plugins && navigator.plugins.length > 0;
 

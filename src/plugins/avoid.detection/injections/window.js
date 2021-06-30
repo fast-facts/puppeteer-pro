@@ -1,6 +1,4 @@
-module.exports = async () => {
-  if (await window.isStopped()) return;
-
+module.exports = () => {
   try {
     if (!(window.outerWidth && window.outerHeight)) {
       window.outerWidth = window.innerWidth;
