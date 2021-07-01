@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-pro",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A simple puppeteer wrapper to enable useful plugins with ease",
   "main": "index.js",
   "scripts": {
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@types/node": "^15.0.0",
+    "@types/user-agents": "^1.0.1",
     "chai": "^4.3.4",
     "copyfiles": "^2.2.0",
     "dotenv-safe": "^8.2.0",
@@ -48,6 +49,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "ghost-cursor": "^1.1.6"
+    "ghost-cursor": "^1.1.6",
+    "user-agents": "^1.0.700"
   }
 }
