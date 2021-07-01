@@ -43,7 +43,7 @@ const solver = PuppeteerPro.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
 
 ## Passive Improvements
 
-- There can be multiple request interception handlers for the same request. In such cases, the resulting response will prioritize [`respond`](https://github.com/puppeteer/puppeteer/blob/master/docs/api.md#httprequestrespondresponse), followed by [`abort`](https://github.com/puppeteer/puppeteer/blob/master/docs/api.md#httprequestaborterrorcode), followed by [`continue`](https://github.com/puppeteer/puppeteer/blob/master/docs/api.md#httprequestcontinueoverrides). For example:
+- There can be multiple request interception handlers for the same request. In such cases, the resulting response will prioritize [`respond`](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse), followed by [`abort`](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestaborterrorcode), followed by [`continue`](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestcontinueoverrides). For example:
   - If amongst 5 handlers, respond is called 1 time, abort is called 2 times and continue is called 2 times, the result will be `respond`. This will occur after the first respond is called and not when all handlers are finished.
   - If amongst 5 handlers, abort is called 1 time and continue is called 4 times, the result will be `abort`. This will occur after all handlers are finished.
   - If amongst 5 handlers, all handlers call continue, the result will be `continue`. This will occur after all handlers are finished.
@@ -60,7 +60,7 @@ const solver = PuppeteerPro.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
 
 ### Block Resources
 
-- Block any [resource type](https://github.com/puppeteer/puppeteer/blob/v2.1.1/docs/api.md#requestresourcetype) from loading
+- Block any [resource type](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestresourcetype) from loading
 - Can be used to speed up loading websites by blocking style sheets and images
 
 ### Disable Dialogs
