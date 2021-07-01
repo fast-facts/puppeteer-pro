@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-pro",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "A simple puppeteer wrapper to enable useful plugins with ease",
   "main": "index.js",
   "scripts": {
@@ -38,11 +38,16 @@
     "@types/node": "^15.0.0",
     "chai": "^4.3.4",
     "copyfiles": "^2.2.0",
+    "dotenv-safe": "^8.2.0",
     "eslint": "^7.22.0",
     "mocha": "^9.0.1",
-    "puppeteer": "^10.0.0",
+    "puppeteer": "^10.1.0",
     "rimraf": "^3.0.2",
     "tslint": "^6.1.1",
     "typescript": "^4.0.2"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "ghost-cursor": "^1.1.6"
   }
 }

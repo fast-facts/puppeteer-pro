@@ -1,3 +1,6 @@
+// tslint:disable-next-line: no-var-requires
+require('dotenv-safe').config();
+
 const Puppeteer = require('puppeteer');
 const PuppeteerPro = require('../dist/index');
 
@@ -9,6 +12,7 @@ const avoidDetectionTest = require('../src/plugins/avoid.detection/test.js');
 const blockResourcesTest = require('../src/plugins/block.resources/test.js');
 const disableDialogsTest = require('../src/plugins/disable.dialogs/test.js');
 const manageCookiesTest = require('../src/plugins/manage.cookies/test.js');
+// const solveRecaptchaTest = require('../src/plugins/solve.recaptcha/test.js');
 
 const pluginTests = {
   describe: `PuppeteerPro's built-in plugins`,
@@ -40,6 +44,10 @@ const pluginTests = {
       describe: 'using profiles',
       tests: [() => manageCookiesTest.profiles(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))]
     }]
+    // },
+    // {
+    // describe: 'can solve recaptcha',
+    // tests: [() => solveRecaptchaTest(PuppeteerPro.solveRecaptchas(process.env.WIT_AI_ACCESS_TOKEN))]
   }]
 };
 
