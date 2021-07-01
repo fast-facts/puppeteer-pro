@@ -21,13 +21,21 @@ const PuppeteerPro = require('puppeteer-pro');
 // Enable the 'avoidDetection' plugin to prevent headless detection
 PuppeteerPro.avoidDetection();
 
+// Enable the 'solveRecaptchas' plugin to solve Google's recaptchas (remember to provide a wit.api API access token)
+const solver = PuppeteerPro.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
+
 (async () => {
   const browser = await PuppeteerPro.launch();
   const page = await browser.newPage();
   
   console.log('Testing the 🐱‍👤 avoidDetection 🐱‍👤 plugin..')
   await page.goto('https://arh.antoinevastel.com/bots/areyouheadless');
-  await page.screenshot({ path: 'areyouheadless.png' });
+  await page.screenshot({ path: 'are-you-headless.png' });
+  
+  console.log('Testing the recaptcha solver..')
+  await page.goto('https://www.google.com/recaptcha/api2/demo');
+  await solver.solveRecaptcha(page);
+  await page.screenshot({ path: 'is-recaptcha-solved.png' });
 
   await browser.close();
 })();
@@ -63,3 +71,8 @@ PuppeteerPro.avoidDetection();
 
 - Save and load cookies across sessions
 - Supports multiple profiles and switching between profiles
+
+### Solve Recaptcha
+
+- Solve Google's reCAPTCHA v2
+- Requires a FREE [wit.ai](https://wit.ai/apps) access token

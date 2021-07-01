@@ -19,12 +19,10 @@
     "noImplicitReturns": true,
     "noImplicitUseStrict": true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "pretty": true,
     "sourceMap": true,
     "strict": true,
-    "strictBindCallApply": false,
+    "strictBindCallApply": false
   },
   "include": [
     "./src/*.ts"

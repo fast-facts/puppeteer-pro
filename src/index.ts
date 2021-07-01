@@ -23,6 +23,8 @@ export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppe
 
 /** The method launches a browser instance with given arguments. The browser will be closed when the parent node.js process is closed. */
 export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.BrowserLaunchArgumentOptions & Puppeteer.BrowserConnectOptions): Promise<Puppeteer.Browser> {
+  if (!options) options = {};
+
   const browser = await Puppeteer.launch({ defaultViewport: undefined, ...options });
 
   for (const plugin of plugins) {
@@ -265,6 +267,13 @@ export function disableDialogs(logMessages = false): DisableDialogsPlugin {
 import { ManageCookiesPlugin, ManageCookiesOption } from './plugins/manage.cookies';
 export function manageCookies(opts: ManageCookiesOption): ManageCookiesPlugin {
   const plugin = new ManageCookiesPlugin(opts);
+  plugins.push(plugin);
+  return plugin;
+}
+
+import { SolveRecaptchaPlugin } from './plugins/solve.recaptcha';
+export function solveRecaptchas(accessToken: string): SolveRecaptchaPlugin {
+  const plugin = new SolveRecaptchaPlugin(accessToken);
   plugins.push(plugin);
   return plugin;
 }

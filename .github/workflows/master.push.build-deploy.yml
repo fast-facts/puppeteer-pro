@@ -16,6 +16,13 @@ jobs:
         with:
           node-version: 10
       - run: npm install
+
+      - uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: .env
+          contents: ${{ secrets.ENV }}
+          write-mode: overwrite
+          
       - run: npm run build --if-present
       - run: npm test
       
