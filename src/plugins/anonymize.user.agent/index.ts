@@ -1,4 +1,5 @@
 import * as Puppeteer from 'puppeteer';
+import UserAgent = require('user-agents');
 
 import { Plugin } from '../../index';
 
@@ -12,6 +13,18 @@ interface PageUserAgent {
 
 export class AnonymizeUserAgentPlugin extends Plugin {
   private pages: PageUserAgent[] = [];
+  private userAgent?: string;
+
+  constructor() {
+    super();
+
+    try {
+      this.userAgent = new UserAgent({ vendor: 'Google Inc.', platform: 'Win32' }).toString();
+    }
+    catch (ex) {
+      console.warn('Could not create a random user agent');
+    }
+  }
 
   protected async afterLaunch(browser: Puppeteer.Browser) {
     const _newPage = browser.newPage;
@@ -28,9 +41,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
 
   protected async onPageCreated(page: Puppeteer.Page) {
     const userAgent = await page.browser().userAgent();
-    const newUserAgent = userAgent
-      .replace('HeadlessChrome/', 'Chrome/')
-      .replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
+    const newUserAgent = this.userAgent || userAgent.replace('HeadlessChrome/', 'Chrome/').replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
 
     this.pages.push({ target: page, userAgent, newUserAgent });
 
