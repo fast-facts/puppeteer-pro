@@ -35,7 +35,7 @@
     "node": ">=10.0.0"
   },
   "devDependencies": {
-    "@types/node": "^15.0.0",
+    "@types/node": "^16.0.0",
     "@types/user-agents": "^1.0.1",
     "chai": "^4.3.4",
     "copyfiles": "^2.2.0",
