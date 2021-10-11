@@ -18,10 +18,6 @@ export class SolveRecaptchaPlugin extends Plugin {
     this.witAiAccessToken = witAiAccessToken;
   }
 
-  protected async onPageCreated(page: Puppeteer.Page) {
-    if (!this.isStopped && !page.isClosed()) await page.evaluateOnNewDocument(injection);
-  }
-
   async hasCaptcha(page: Puppeteer.Page) {
     return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')?.contentDocument?.querySelector('#recaptcha-anchor'));
   }
@@ -59,26 +55,13 @@ export class SolveRecaptchaPlugin extends Plugin {
     while (!(await isFinished())) {
       await waitForSelector('api2/bframe', '.rc-audiochallenge-tdownload-link');
 
-      const audioArray = await page.evaluate(async () => {
-        const audioUrl = document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]')?.contentDocument?.querySelector<HTMLLinkElement>('.rc-audiochallenge-tdownload-link')?.href;
-
-        if (!audioUrl) return null;
-
-        const audioResponse = await fetch(audioUrl, { referrer: '' });
-        const audio = await audioResponse.arrayBuffer();
-
-        const _audioBuffer = await (window as any).normalizeAudio(audio);
-
-        const audioSlice = await (window as any).sliceAudio({
-          audioBuffer: _audioBuffer,
-          start: 1.5,
-          end: _audioBuffer.duration - 1.5
-        });
-
-        const wav = (window as any).audioBufferToWav(audioSlice);
-
-        return [...new Int8Array(wav)];
+      const audioUrl = await page.evaluate(async () => {
+        return document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]')?.contentDocument?.querySelector<HTMLLinkElement>('.rc-audiochallenge-tdownload-link')?.href;
       });
+
+      if (!audioUrl) return;
+
+      const audioArray = await page.evaluate(injection, audioUrl);
 
       if (!audioArray) return;
 
