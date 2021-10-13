@@ -67,7 +67,7 @@ export class SolveRecaptchaPlugin extends Plugin {
 
       const audioBuffer = Buffer.from(new Int8Array(audioArray));
 
-      const response = await axios.post('https://api.wit.ai/speech?v=20210701', audioBuffer, {
+      const response = await axios.post<any>('https://api.wit.ai/speech?v=20210701', audioBuffer, {
         headers: {
           'Authorization': `Bearer ${this.witAiAccessToken}`,
           'Content-Type': 'audio/wav'
