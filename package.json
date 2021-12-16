@@ -40,7 +40,7 @@
     "user-agents": "^1.0.700"
   },
   "devDependencies": {
-    "@types/node": "^16.0.0",
+    "@types/node": "^17.0.0",
     "@types/user-agents": "^1.0.1",
     "chai": "^4.3.4",
     "copyfiles": "^2.2.0",
