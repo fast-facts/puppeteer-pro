@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.0",
-    "@types/user-agents": "^1.0.1",
+    "@types/user-agents": "^1.0.2",
     "chai": "^4.3.4",
     "copyfiles": "^2.2.0",
     "dotenv-safe": "^8.2.0",
