@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-pro",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "A simple puppeteer wrapper to enable useful plugins with ease",
   "main": "index.js",
   "scripts": {
