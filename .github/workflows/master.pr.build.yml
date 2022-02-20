@@ -7,6 +7,7 @@ on:
 
 jobs:
   run:
+    name: Build on PR
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
