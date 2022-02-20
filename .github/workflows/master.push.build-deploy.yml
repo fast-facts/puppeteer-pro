@@ -7,9 +7,8 @@ on:
 
 jobs:
   run:
-    
+    name: Build/Deploy on Push
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
