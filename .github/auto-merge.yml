@@ -6,7 +6,6 @@ minApprovals:
   COLLABORATOR: 0
 maxRequestedChanges:
   NONE: 0
-blockingTitleRegex: '\bBump ghost-cursor'
 
 rules:
 - minApprovals:
