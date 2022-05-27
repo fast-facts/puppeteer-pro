@@ -67,16 +67,18 @@ export class SolveRecaptchaPlugin extends Plugin {
 
       const audioBuffer = Buffer.from(new Int8Array(audioArray));
 
-      const response = await axios.post<any>('https://api.wit.ai/speech?v=20210701', audioBuffer, {
+      const response = await axios.post<any>('https://api.wit.ai/speech?v=20220527', audioBuffer, {
         headers: {
           'Authorization': `Bearer ${this.witAiAccessToken}`,
           'Content-Type': 'audio/wav'
         }
       });
 
-      if (response.data.text) {
+      const data = typeof response.data === 'string' ? JSON.parse(response.data.split('\r\n').slice(-1)[0] || '{}') : response.data;
+
+      if (data?.text) {
         const responseInput = await page.frames().find(frame => frame.url().includes('api2/bframe'))?.$('#audio-response');
-        responseInput?.type(response.data.text);
+        responseInput?.type(data.text);
 
         await findAndClick('api2/bframe', '#recaptcha-verify-button');
 
