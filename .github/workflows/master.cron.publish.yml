@@ -29,6 +29,7 @@ jobs:
         id: semantic
         with:
           dry_run: true
+          directory: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
