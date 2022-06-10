@@ -10,3 +10,7 @@ updates:
   versioning-strategy: increase
   labels:
   - dependencies
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+    include: scope
