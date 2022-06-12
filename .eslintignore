@@ -1,6 +1,2 @@
-*.js
-!index.js
-!src/plugins/*/injections/*.js
-
-!test/*.js
-!src/plugins/*/*.js
+node_modules/
+dist/

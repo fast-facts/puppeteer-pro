@@ -39,7 +39,6 @@ export class ManageCookiesPlugin extends Plugin {
     this.profile = opts.profile || this.profile;
 
     if (this.disableWarning !== true) {
-      // tslint:disable-next-line: no-console
       console.warn('Warning: Exposing cookies in an unprotected manner can compromise your security. Add the `disableWarning` flag to remove this message.');
     }
   }
@@ -49,13 +48,11 @@ export class ManageCookiesPlugin extends Plugin {
       this.allCookies = this.parse(fs.readFileSync(this.saveLocation).toString() || '{}');
     }
 
-    // tslint:disable-next-line: no-floating-promises
-    this.watchCookies();
+    void this.watchCookies();
   }
 
   protected async afterRestart() {
-    // tslint:disable-next-line: no-floating-promises
-    this.watchCookies();
+    void this.watchCookies();
   }
 
   async switchToProfile(profile: string) {

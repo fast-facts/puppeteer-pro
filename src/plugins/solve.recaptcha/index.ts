@@ -6,7 +6,8 @@ import { createCursor } from 'ghost-cursor';
 import { Plugin } from '../../index';
 import { AvoidDetectionPlugin } from './../avoid.detection/index';
 
-const injection = require(path.resolve(`${__dirname}/injections`) + '/utils.js');// tslint:disable-line: no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const injection = require(path.resolve(`${__dirname}/injections`) + '/utils.js');
 const randomBetween = (min: number, max: number) => Math.floor(Math.random() * (max - min)) + min;
 
 export class SolveRecaptchaPlugin extends Plugin {
@@ -78,7 +79,7 @@ export class SolveRecaptchaPlugin extends Plugin {
 
       if (data?.text) {
         const responseInput = await page.frames().find(frame => frame.url().includes('api2/bframe'))?.$('#audio-response');
-        responseInput?.type(data.text);
+        await responseInput?.type(data.text);
 
         await findAndClick('api2/bframe', '#recaptcha-verify-button');
 
