@@ -1,3 +1,4 @@
+/* eslint-disable prefer-rest-params */
 import * as events from 'events';
 
 // Puppeteer Defaults
@@ -85,8 +86,8 @@ export class Plugin {
     return this.afterLaunch(browser);
   }
 
-  protected async afterLaunch(_browser: Puppeteer.Browser) { }
-  protected async onClose() { }
+  protected async afterLaunch(_browser: Puppeteer.Browser) { null; }
+  protected async onClose() { null; }
 
   protected async onTargetCreated(target: Puppeteer.Target) {
     if (this.isStopped) return;
@@ -114,7 +115,6 @@ export class Plugin {
       let continued = 0;
       let continueArgs: IArguments;
 
-      // tslint:disable-next-line: only-arrow-functions
       const handleRequest = async function () {
         const total = responded + aborted + continued;
 
@@ -125,11 +125,8 @@ export class Plugin {
         }
       };
 
-      // tslint:disable-next-line: only-arrow-functions
       request.respond = async function () { responded++; respondArgs = respondArgs || arguments; await handleRequest(); };
-      // tslint:disable-next-line: only-arrow-functions
       request.abort = async function () { aborted++; abortArgs = abortArgs || arguments; await handleRequest(); };
-      // tslint:disable-next-line: only-arrow-functions
       request.continue = async function () { continued++; continueArgs = continueArgs || arguments; await handleRequest(); };
 
       requestHandlers.forEach(handler => handler(request));
@@ -160,7 +157,7 @@ export class Plugin {
 
     await this.onPageCreated(page);
   }
-  protected async onPageCreated(_page: Puppeteer.Page) { }
+  protected async onPageCreated(_page: Puppeteer.Page) { null; }
 
   protected async onRequest(request: Puppeteer.HTTPRequest) {
     const interceptionHandled = (request as any)._interceptionHandled;
@@ -169,7 +166,7 @@ export class Plugin {
 
     await this.processRequest(request);
   }
-  protected async processRequest(_request: Puppeteer.HTTPRequest) { }
+  protected async processRequest(_request: Puppeteer.HTTPRequest) { null; }
 
   protected async onDialog(dialog: Puppeteer.Dialog) {
     const handled = (dialog as any)._handled;
@@ -179,9 +176,9 @@ export class Plugin {
 
     await this.processDialog(dialog);
   }
-  protected async processDialog(_dialog: Puppeteer.Dialog) { }
+  protected async processDialog(_dialog: Puppeteer.Dialog) { null; }
 
-  protected async beforeRestart() { }
+  protected async beforeRestart() { null; }
   async restart() {
     await this.beforeRestart();
 
@@ -192,9 +189,9 @@ export class Plugin {
 
     await this.afterRestart();
   }
-  protected async afterRestart() { }
+  protected async afterRestart() { null; }
 
-  protected async beforeStop() { }
+  protected async beforeStop() { null; }
   async stop() {
     await this.beforeStop();
 
@@ -213,7 +210,7 @@ export class Plugin {
 
     await this.afterStop();
   }
-  protected async afterStop() { }
+  protected async afterStop() { null; }
 
   protected async getFirstPage() {
     if (!this.browser) return null;

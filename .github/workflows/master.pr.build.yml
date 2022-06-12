@@ -27,5 +27,6 @@ jobs:
           contents: ${{ secrets.ENV }}
           write-mode: overwrite
           
-      - run: npm run build --if-present
+      - run: npm run lint
+      - run: npm run build
       - run: npm test
