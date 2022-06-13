@@ -16,21 +16,3 @@ updates:
       include: scope
     ignore:
       - dependency-name: "user-agents"
-
-  - package-ecosystem: npm
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-      timezone: America/New_York
-    open-pull-requests-limit: 10
-    versioning-strategy: increase
-    labels:
-      - dependencies
-    commit-message:
-      prefix: fix
-      prefix-development: chore
-      include: scope
-    allow:
-      - dependency-name: "user-agents"
