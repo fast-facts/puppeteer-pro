@@ -43,7 +43,7 @@
   "devDependencies": {
     "@types/node": "^17.0.42",
     "@types/user-agents": "^1.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.27.1",
+    "@typescript-eslint/eslint-plugin": "^5.28.0",
     "@typescript-eslint/parser": "^5.27.1",
     "chai": "^4.3.6",
     "copyfiles": "^2.4.1",
