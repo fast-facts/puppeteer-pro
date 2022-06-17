@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ItzRabbs/puppeteer-pro.git"
+    "url": "git+https://github.com/RabbitPlayground/puppeteer-pro.git"
   },
-  "author": "ItzRabbs",
+  "author": "RabbitPlayground",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ItzRabbs/puppeteer-pro/issues"
+    "url": "https://github.com/RabbitPlayground/puppeteer-pro/issues"
   },
-  "homepage": "https://github.com/ItzRabbs/puppeteer-pro#readme",
+  "homepage": "https://github.com/RabbitPlayground/puppeteer-pro#readme",
   "keywords": [
     "puppeteer",
     "chrome",
