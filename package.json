@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "prebuild": "npm run clean",
     "lint": "eslint . --ext .ts",
+    "prebuild": "npm run clean",
     "build": "tsc",
     "postbuild": "npm run copy:injections && npm run copy:files",
     "copy:injections": "copyfiles -u 1 src/plugins/*/injections/* dist",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RabbitPlayground/puppeteer-pro.git"
+    "url": "git+https://github.com/fast-facts/puppeteer-pro.git"
   },
-  "author": "RabbitPlayground",
+  "author": "fast-facts",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/RabbitPlayground/puppeteer-pro/issues"
+    "url": "https://github.com/fast-facts/puppeteer-pro/issues"
   },
-  "homepage": "https://github.com/RabbitPlayground/puppeteer-pro#readme",
+  "homepage": "https://github.com/fast-facts/puppeteer-pro#readme",
   "keywords": [
     "puppeteer",
     "chrome",
