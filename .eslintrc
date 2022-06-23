@@ -13,13 +13,27 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
+    "arrow-parens": [
+      "error",
+      "as-needed"
+    ],
     "comma-dangle": [
       "error",
       {
         "arrays": "always-multiline"
       }
     ],
+    "eqeqeq": "error",
     "no-return-await": "error",
+    "prefer-arrow-callback": "error",
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "quote-props": [
+      "error",
+      "as-needed"
+    ],
     "semi": [
       "error",
       "always"
