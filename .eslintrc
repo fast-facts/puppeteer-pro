@@ -28,7 +28,10 @@
     "prefer-arrow-callback": "error",
     "quotes": [
       "error",
-      "single"
+      "single",
+      {
+        "avoidEscape": true
+      }
     ],
     "quote-props": [
       "error",
