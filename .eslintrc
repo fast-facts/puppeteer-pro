@@ -23,7 +23,13 @@
         "arrays": "always-multiline"
       }
     ],
-    "eqeqeq": "error",
+    "eqeqeq": [
+      "error",
+      "always",
+      {
+        "null": "ignore"
+      }
+    ],
     "no-return-await": "error",
     "prefer-arrow-callback": "error",
     "quotes": [
