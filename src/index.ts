@@ -53,7 +53,7 @@ export class Plugin {
   get isInitialized() { return this.initialized; }
   get isStopped() { return this.startCounter === 0; }
 
-  protected async addDependency(plugin: Plugin) {
+  async addDependency(plugin: Plugin) {
     this.dependencies.push(plugin);
   }
 
@@ -168,15 +168,20 @@ export class Plugin {
   }
   protected async processRequest(_request: Puppeteer.HTTPRequest) { null; }
 
-  protected async onDialog(dialog: Puppeteer.Dialog) {
-    const handled = (dialog as any)._handled;
-
-    if (handled) return;
+  protected async onDialog(dialog: Dialog) {
     if (this.isStopped) return;
+
+    const _dismiss = dialog.dismiss;
+    dialog.dismiss = async () => {
+      if (dialog.handled) return;
+
+      dialog.handled = true;
+      await _dismiss.apply(dialog);
+    };
 
     await this.processDialog(dialog);
   }
-  protected async processDialog(_dialog: Puppeteer.Dialog) { null; }
+  protected async processDialog(_dialog: Dialog) { null; }
 
   protected async beforeRestart() { null; }
   async restart() {
@@ -273,4 +278,8 @@ export function solveRecaptchas(accessToken: string): SolveRecaptchaPlugin {
   const plugin = new SolveRecaptchaPlugin(accessToken);
   plugins.push(plugin);
   return plugin;
+}
+
+interface Dialog extends Puppeteer.Dialog {
+  handled: boolean;
 }

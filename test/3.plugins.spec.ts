@@ -1,20 +1,18 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv-safe').config();
 
-const Puppeteer = require('puppeteer');
-const PuppeteerPro = require('../dist/index');
+import * as Puppeteer from 'puppeteer';
+import * as PuppeteerPro from '../src/index';
 
-const sleep = time => { return new Promise(resolve => { setTimeout(resolve, time); }); };
-const waitUntil = async func => { while (!func()) await sleep(200); };
+import { anonymizeTest } from '../src/plugins/anonymize.user.agent/test.spec';
+import { avoidDetectionTest } from '../src/plugins/avoid.detection/test.spec';
+import { blockResourcesTest } from '../src/plugins/block.resources/test.spec';
+import { disableDialogsTest } from '../src/plugins/disable.dialogs/test.spec';
+import { manageCookiesTest } from '../src/plugins/manage.cookies/test.spec';
+// import { solveRecaptchaTest } from '../src/plugins/solve.recaptcha/test.spec';
 
-const anonymizeTest = require('../src/plugins/anonymize.user.agent/test.js');
-const avoidDetectionTest = require('../src/plugins/avoid.detection/test.js');
-const blockResourcesTest = require('../src/plugins/block.resources/test.js');
-const disableDialogsTest = require('../src/plugins/disable.dialogs/test.js');
-const manageCookiesTest = require('../src/plugins/manage.cookies/test.js');
-// const solveRecaptchaTest = require('../src/plugins/solve.recaptcha/test.js');
-
-const pluginTests = {
-  describe: `PuppeteerPro's built-in plugins`,
+const pluginTests: PluginTests = {
+  describe: 'PuppeteerPro\'s built-in plugins',
   tests: [{
     describe: 'can anonymize user agent',
     tests: [() => anonymizeTest(PuppeteerPro.anonymizeUserAgent())]
@@ -50,22 +48,18 @@ const pluginTests = {
   }]
 };
 
-const runRecursiveTests = x => {
+const runRecursiveTests = (x: PluginTests) => {
   if (x.describe && x.tests) {
-    let performTest;
-    let testsFinished = 0;
+    let performTest: (browserWSEndpoint?: string) => Promise<void>;
 
     describe(x.describe, () => {
 
-      x.tests.forEach((test, i) => {
-        if (test.describe) {
-          return runRecursiveTests(test);
-        } else {
-          before(async () => { await waitUntil(() => testsFinished === i); });
-          after(() => { testsFinished++; });
+      for (const test of x.tests) {
+        if (test instanceof Function) {
+          jest.setTimeout(30 * 1000);
 
-          beforeEach(() => {
-            PuppeteerPro.clearPlugins();
+          beforeEach(async () => {
+            await PuppeteerPro.clearPlugins();
             performTest = test();
           });
 
@@ -80,11 +74,18 @@ const runRecursiveTests = x => {
 
             await performTest(browserWSEndpoint);
           });
+        } else {
+          runRecursiveTests(test);
         }
-      });
+      }
 
     });
   }
 };
 
 runRecursiveTests(pluginTests);
+
+interface PluginTests {
+  describe: string;
+  tests: PluginTests[] | (() => (browserWSEndpoint?: string) => Promise<void>)[]
+}

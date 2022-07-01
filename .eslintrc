@@ -6,7 +6,10 @@
     "deprecation"
   ],
   "parserOptions": {
-    "project": "tsconfig.json"
+    "project": [
+      "tsconfig.json",
+      "tsconfig.spec.json"
+    ]
   },
   "extends": [
     "eslint:recommended",

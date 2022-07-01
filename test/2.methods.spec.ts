@@ -1,15 +1,13 @@
-const Puppeteer = require('puppeteer');
-const PuppeteerPro = require('../dist/index');
-const chai = require('chai');
+import * as Puppeteer from 'puppeteer';
+import { Browser } from 'puppeteer';
+import * as PuppeteerPro from '../src/index';
 
-const expect = chai.expect;
-
-const sleep = time => { return new Promise(resolve => { setTimeout(resolve, time); }); };
-const waitUntil = async func => { while (!func()) await sleep(200); };
+const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
 class TestPlugin extends PuppeteerPro.Plugin {
-  constructor() { super(arguments); this.state = false; }
-  afterLaunch(browser) {
+  _state = false;
+
+  async afterLaunch(browser: Browser) {
     const _newPage = browser.newPage;
     browser.newPage = async () => {
       const page = await _newPage.apply(browser);
@@ -17,12 +15,14 @@ class TestPlugin extends PuppeteerPro.Plugin {
       return page;
     };
   }
-  onPageCreated() { this.state = true; }
+
+  async onPageCreated() { this.state = true; }
+
   get state() { return this._state; }
   set state(state) { this._state = state; }
 }
 
-const addTest = plugin => async browserWSEndpoint => {
+const addTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
   try {
@@ -36,14 +36,14 @@ const addTest = plugin => async browserWSEndpoint => {
       return works;
     };
 
-    expect(await getResult()).to.equal(true);
+    expect(await getResult()).toBe(true);
   }
   finally {
     if (browser) await browser.close();
   }
 };
 
-const stopTest = plugin => async browserWSEndpoint => {
+const stopTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
   try {
@@ -57,17 +57,17 @@ const stopTest = plugin => async browserWSEndpoint => {
       return works;
     };
 
-    expect(await getResult()).to.equal(true);
+    expect(await getResult()).toBe(true);
 
     await plugin.stop();
-    expect(await getResult()).to.equal(false);
+    expect(await getResult()).toBe(false);
   }
   finally {
     if (browser) await browser.close();
   }
 };
 
-const restartTest = plugin => async browserWSEndpoint => {
+const restartTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
   try {
@@ -81,22 +81,22 @@ const restartTest = plugin => async browserWSEndpoint => {
       return works;
     };
 
-    expect(await getResult()).to.equal(true);
+    expect(await getResult()).toBe(true);
 
     await plugin.stop();
-    expect(await getResult()).to.equal(false);
+    expect(await getResult()).toBe(false);
 
     await plugin.restart();
-    expect(await getResult()).to.equal(true);
+    expect(await getResult()).toBe(true);
   }
   finally {
     if (browser) await browser.close();
   }
 };
 
-const dependencyTest = plugin => async browserWSEndpoint => {
+const dependencyTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
   const dependency = new TestPlugin();
-  plugin.addDependency(dependency);
+  await plugin.addDependency(dependency);
 
   const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
 
@@ -112,20 +112,20 @@ const dependencyTest = plugin => async browserWSEndpoint => {
       return works;
     };
 
-    expect(await getResult()).to.equal(true);
+    expect(await getResult()).toBe(true);
 
     await plugin.stop();
-    expect(await getResult()).to.equal(false);
+    expect(await getResult()).toBe(false);
 
     await plugin.restart();
-    expect(await getResult()).to.equal(true);
+    expect(await getResult()).toBe(true);
   }
   finally {
     if (browser) await browser.close();
   }
 };
 
-const pluginTests = {
+const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
   tests: [{
     describe: 'can add a plugin',
@@ -145,22 +145,16 @@ const pluginTests = {
   }]
 };
 
-const runRecursiveTests = x => {
+const runRecursiveTests = (x: PluginTests) => {
   if (x.describe && x.tests) {
-    let performTest;
-    let testsFinished = 0;
+    let performTest: (browserWSEndpoint?: string) => Promise<void>;
 
     describe(x.describe, () => {
 
-      x.tests.forEach((test, i) => {
-        if (test.describe) {
-          return runRecursiveTests(test);
-        } else {
-          before(async () => { await waitUntil(() => testsFinished === i); });
-          after(() => { testsFinished++; });
-
-          beforeEach(() => {
-            PuppeteerPro.clearPlugins();
+      for (const test of x.tests) {
+        if (test instanceof Function) {
+          beforeEach(async () => {
+            await PuppeteerPro.clearPlugins();
             const plugin = new TestPlugin();
             PuppeteerPro.addPlugin(plugin);
             performTest = test(plugin);
@@ -177,11 +171,18 @@ const runRecursiveTests = x => {
 
             await performTest(browserWSEndpoint);
           });
+        } else {
+          runRecursiveTests(test);
         }
-      });
+      }
 
     });
   }
 };
 
 runRecursiveTests(pluginTests);
+
+interface PluginTests {
+  describe: string;
+  tests: PluginTests[] | ((plugin: TestPlugin) => (browserWSEndpoint?: string) => Promise<void>)[]
+}
