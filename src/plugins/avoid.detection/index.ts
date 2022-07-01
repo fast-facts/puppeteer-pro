@@ -1,12 +1,12 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { readdirSync } from 'fs';
+import { resolve as resolvePath } from 'path';
 import * as Puppeteer from 'puppeteer';
 
 import { Plugin } from '../../index';
 import { AnonymizeUserAgentPlugin } from './../anonymize.user.agent/index';
 
-const injectionsFolder = path.resolve(`${__dirname}/injections`);
-const injections = fs.readdirSync(injectionsFolder).map(fileName => require(`${injectionsFolder}/${fileName}`));
+const injectionsFolder = resolvePath(`${__dirname}/injections`);
+const injections = readdirSync(injectionsFolder).map(fileName => require(`${injectionsFolder}/${fileName}`));
 
 export class AvoidDetectionPlugin extends Plugin {
   dependencies = [new AnonymizeUserAgentPlugin()];
