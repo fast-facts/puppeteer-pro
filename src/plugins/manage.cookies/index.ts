@@ -11,8 +11,8 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 export interface ManageCookiesOption {
   saveLocation: string;
   mode: 'manual' | 'monitor';
-  stringify?: (cookies: { [profile: string]: Puppeteer.Protocol.Network.Cookie[] }) => string;
-  parse?: (cookies: string) => { [profile: string]: Puppeteer.Protocol.Network.Cookie[] };
+  stringify?: (cookies: { [profile: string]: Cookie[] }) => string;
+  parse?: (cookies: string) => { [profile: string]: Cookie[] };
   disableWarning?: boolean;
   profile?: 'string';
 }
@@ -20,12 +20,12 @@ export interface ManageCookiesOption {
 export class ManageCookiesPlugin extends Plugin {
   private saveLocation = '';
   private mode = '';
-  private stringify = (cookies: { [profile: string]: Puppeteer.Protocol.Network.Cookie[] }) => JSON.stringify(cookies);
+  private stringify = (cookies: { [profile: string]: Cookie[] }) => JSON.stringify(cookies);
   private parse = (cookies: string) => JSON.parse(cookies);
   private disableWarning = false;
   private profile = 'default';
 
-  private allCookies: { [profile: string]: Puppeteer.Protocol.Network.Cookie[] } = {};
+  private allCookies: { [profile: string]: Cookie[] } = {};
 
   constructor(opts: ManageCookiesOption) {
     super();
@@ -160,7 +160,7 @@ export class ManageCookiesPlugin extends Plugin {
 
     try {
       const client = await page.target().createCDPSession();
-      const { cookies } = (await client.send('Network.getAllCookies') || {}) as { cookies: Puppeteer.Protocol.Network.Cookie[] };
+      const { cookies } = await client.send('Network.getAllCookies') || {};
 
       return cookies;
     }
@@ -169,3 +169,5 @@ export class ManageCookiesPlugin extends Plugin {
     }
   }
 }
+
+type Cookie = Puppeteer.ProtocolMapping.Commands['Network.getAllCookies']['returnType']['cookies'][number];
