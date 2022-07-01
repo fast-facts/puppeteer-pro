@@ -1,7 +1,6 @@
 {
   "include": [
-    "./test/*.ts",
-    "./src/**/*.spec.ts",
+    "./**/*.spec.ts",
     "jest.config.ts"
   ]
 }

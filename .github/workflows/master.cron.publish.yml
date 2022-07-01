@@ -3,7 +3,7 @@ name: Publish
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: "0 9 * * *"
 
 jobs:
   run:
@@ -21,11 +21,11 @@ jobs:
           path: .env
           contents: ${{ secrets.ENV }}
           write-mode: overwrite
-          
+
       - run: npm run lint
-      - run: npm run build
       - run: npm test
-      
+      - run: npm run build
+
       - uses: codfish/semantic-release-action@v1
         with:
           plugins: |
