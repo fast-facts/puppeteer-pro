@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@types/jest": "^28.1.7",
-    "@types/node": "^18.7.11",
+    "@types/node": "^18.7.12",
     "@types/user-agents": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^5.34.0",
     "@typescript-eslint/parser": "^5.34.0",
