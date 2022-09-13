@@ -45,7 +45,7 @@
     "@types/node": "^18.7.16",
     "@types/user-agents": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^5.36.2",
-    "@typescript-eslint/parser": "^5.36.2",
+    "@typescript-eslint/parser": "^5.37.0",
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^8.2.0",
     "eslint": "^8.23.1",
