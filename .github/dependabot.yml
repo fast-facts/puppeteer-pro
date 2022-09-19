@@ -1,10 +1,10 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: "/"
+    directory: '/'
     schedule:
       interval: daily
-      time: "03:00"
+      time: '03:00'
       timezone: America/New_York
     open-pull-requests-limit: 10
     versioning-strategy: increase
@@ -15,4 +15,4 @@ updates:
       prefix-development: chore
       include: scope
     ignore:
-      - dependency-name: "user-agents"
+      - dependency-name: 'user-agents'
