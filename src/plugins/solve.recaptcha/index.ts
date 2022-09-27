@@ -19,8 +19,14 @@ export class SolveRecaptchaPlugin extends Plugin {
     this.witAiAccessToken = witAiAccessToken;
   }
 
+  async waitForCaptcha(page: Puppeteer.Page, timeout?: number) {
+    return page.waitForFunction(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')
+      && !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'), { timeout });
+  }
+
   async hasCaptcha(page: Puppeteer.Page) {
-    return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')?.contentDocument?.querySelector('#recaptcha-anchor'));
+    return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')
+      && !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'));
   }
 
   async solveRecaptcha(page: Puppeteer.Page) {
@@ -28,16 +34,19 @@ export class SolveRecaptchaPlugin extends Plugin {
     if (!this.witAiAccessToken) return;
     if (!(await this.hasCaptcha(page))) return;
 
+    const anchorFrame = page.frames().find(x => x.url().includes('api2/anchor'));
+    if (!anchorFrame) return;
+
     const cursor = createCursor(page);
 
-    async function waitForSelector(iframeUrlIncludes: string, selector: string) {
-      await page.waitForFunction((_iframeUrlIncludes: string, _selector: string) => document.querySelector<HTMLIFrameElement>(`iframe[src*="${_iframeUrlIncludes}"]`)?.contentDocument?.querySelector(_selector), {}, iframeUrlIncludes, selector);
+    async function waitForSelector(iframe: Puppeteer.Frame, selector: string) {
+      await iframe.waitForFunction((_selector: string) => document.querySelector(_selector), {}, selector);
     }
 
-    async function findAndClick(iframeUrlIncludes: string, selector: string) {
-      await waitForSelector(iframeUrlIncludes, selector);
+    async function findAndClick(iframe: Puppeteer.Frame, selector: string) {
+      await waitForSelector(iframe, selector);
 
-      const element = await page.frames().find(frame => frame.url().includes(iframeUrlIncludes))?.$(selector);
+      const element = await iframe.$(selector);
       if (!element) return;
 
       await sleep(randomBetween(1 * 1000, 3 * 1000));
@@ -47,23 +56,23 @@ export class SolveRecaptchaPlugin extends Plugin {
     let numTriesLeft = 5;
     async function isFinished() {
       if (--numTriesLeft === 0) return true;
-      return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')?.contentDocument?.querySelector('.recaptcha-checkbox-checked'));
+      return anchorFrame?.evaluate(() => !!document.querySelector('.recaptcha-checkbox-checked'));
     }
 
-    await findAndClick('api2/anchor', '#recaptcha-anchor');
-    await findAndClick('api2/bframe', '.rc-button-audio');
+    await findAndClick(anchorFrame, '#recaptcha-anchor');
+
+    const bframeFrame = page.frames().find(x => x.url().includes('api2/bframe'));
+    if (!bframeFrame) return;
+
+    await findAndClick(bframeFrame, '.rc-button-audio');
 
     while (!(await isFinished())) {
-      await waitForSelector('api2/bframe', '.rc-audiochallenge-tdownload-link');
+      await waitForSelector(bframeFrame, '.rc-audiochallenge-tdownload-link');
 
-      const audioUrl = await page.evaluate(async () => {
-        return document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]')?.contentDocument?.querySelector<HTMLLinkElement>('.rc-audiochallenge-tdownload-link')?.href;
-      });
-
+      const audioUrl = await bframeFrame.evaluate(async () => document.querySelector<HTMLLinkElement>('.rc-audiochallenge-tdownload-link')?.href);
       if (!audioUrl) return;
 
-      const audioArray = await page.evaluate(injection, audioUrl);
-
+      const audioArray = await bframeFrame.evaluate(injection, audioUrl);
       if (!audioArray) return;
 
       const audioBuffer = Buffer.from(new Int8Array(audioArray));
@@ -78,14 +87,14 @@ export class SolveRecaptchaPlugin extends Plugin {
       const data = typeof response.data === 'string' ? JSON.parse(response.data.split('\r\n').slice(-1)[0] || '{}') : response.data;
 
       if (data?.text) {
-        const responseInput = await page.frames().find(frame => frame.url().includes('api2/bframe'))?.$('#audio-response');
+        const responseInput = await bframeFrame.$('#audio-response');
         await responseInput?.type(data.text);
 
-        await findAndClick('api2/bframe', '#recaptcha-verify-button');
+        await findAndClick(bframeFrame, '#recaptcha-verify-button');
 
         await sleep(1000);
       } else {
-        await findAndClick('api2/bframe', '#recaptcha-reload-button');
+        await findAndClick(bframeFrame, '#recaptcha-reload-button');
       }
     }
   }

@@ -33,7 +33,8 @@ const solver = PuppeteerPro.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
   await page.screenshot({ path: 'are-you-headless.png' });
   
   console.log('Testing the recaptcha solver..')
-  await page.goto('https://www.google.com/recaptcha/api2/demo');
+  await page.goto('https://recaptcha-demo.appspot.com/recaptcha-v2-checkbox.php');
+  await solver.waitForCaptcha(page); // Captcha script is deferred, so will load after page.goto completes
   await solver.solveRecaptcha(page);
   await page.screenshot({ path: 'is-recaptcha-solved.png' });
 
