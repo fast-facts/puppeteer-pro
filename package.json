@@ -36,7 +36,7 @@
     "node": ">=10.0.0"
   },
   "dependencies": {
-    "axios": "^1.0.0",
+    "axios": "^1.1.0",
     "ghost-cursor": "^1.1.15",
     "user-agents": "^1.0.1159"
   },
