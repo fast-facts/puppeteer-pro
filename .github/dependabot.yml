@@ -15,4 +15,5 @@ updates:
       prefix-development: chore
       include: scope
     ignore:
+      - dependency-name: 'axios'
       - dependency-name: 'user-agents'
