@@ -41,7 +41,7 @@
     "user-agents": "^1.0.1159"
   },
   "devDependencies": {
-    "@types/jest": "^29.2.2",
+    "@types/jest": "^29.2.3",
     "@types/node": "^18.11.9",
     "@types/user-agents": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
