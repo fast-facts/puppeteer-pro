@@ -17,7 +17,6 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitUseStrict": true,
     "noImplicitThis": true,
     "pretty": true,
     "sourceMap": true,
