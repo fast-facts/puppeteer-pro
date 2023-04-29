@@ -13,11 +13,11 @@ export function anonymizeTest(plugin: PuppeteerPro.Plugin) {
       const getResult = async () => {
         if (!page) return;
 
-        await page.goto('https://httpbin.org/headers');
+        await page.goto('https://postman-echo.com/headers');
         await sleep(100);
 
         const data = await page.evaluate(() => JSON.parse(document.body.innerText));
-        return data.headers['User-Agent'];
+        return data.headers['user-agent'];
       };
 
       expect(await getResult()).not.toContain('Headless');
