@@ -26,6 +26,7 @@ export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppe
 export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.BrowserLaunchArgumentOptions & Puppeteer.BrowserConnectOptions): Promise<Puppeteer.Browser> {
   if (!options) options = {};
 
+  process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
   const browser = await Puppeteer.launch({ defaultViewport: undefined, ...options });
 
   for (const plugin of plugins) {
