@@ -10,8 +10,12 @@ concurrency:
 
 jobs:
   run:
-    name: Build on PR
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu, windows, macos]
+        node-version: ['16', '18', '20']
+    name: Build on PR (${{ matrix.os }} Node.js ${{ matrix.node-version }})
+    runs-on: ${{ matrix.os }}-latest
     if: github.actor == 'dependabot[bot]'
     steps:
       - name: Checkout
@@ -21,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: ${{ matrix.node-version }}
       - run: npm install
 
       - uses: DamianReeves/write-file-action@v1.0
