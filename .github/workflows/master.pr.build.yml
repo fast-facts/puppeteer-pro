@@ -1,6 +1,9 @@
 name: Build on PR
 
 on:
+  push:
+    branches:
+      - matrix-test
   pull_request_target:
     branches:
       - master
