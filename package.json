@@ -38,7 +38,7 @@
   "dependencies": {
     "axios": "^1.4.0",
     "ghost-cursor": "^1.1.18",
-    "user-agents": "^1.0.1159"
+    "user-agents": "^1.0.1407"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
