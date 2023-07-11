@@ -28,7 +28,7 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - uses: codfish/semantic-release-action@v1
+      - uses: codfish/semantic-release-action@v2
         with:
           plugins: |
             [
