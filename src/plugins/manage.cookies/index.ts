@@ -11,8 +11,8 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 export interface ManageCookiesOption {
   saveLocation: string;
   mode: 'manual' | 'monitor';
-  stringify?: (cookies: { [profile: string]: Cookie[] }) => string;
-  parse?: (cookies: string) => { [profile: string]: Cookie[] };
+  stringify?: (cookies: Record<string, Cookie[]>) => string;
+  parse?: (cookies: string) => Record<string, Cookie[]>;
   disableWarning?: boolean;
   profile?: 'string';
 }
@@ -20,12 +20,12 @@ export interface ManageCookiesOption {
 export class ManageCookiesPlugin extends Plugin {
   private saveLocation = '';
   private mode = '';
-  private stringify = (cookies: { [profile: string]: Cookie[] }) => JSON.stringify(cookies);
+  private stringify = (cookies: Record<string, Cookie[]>) => JSON.stringify(cookies);
   private parse = (cookies: string) => JSON.parse(cookies);
   private disableWarning = false;
   private profile = 'default';
 
-  private allCookies: { [profile: string]: Cookie[] } = {};
+  private allCookies: Record<string, Cookie[]> = {};
 
   constructor(opts: ManageCookiesOption) {
     super();
