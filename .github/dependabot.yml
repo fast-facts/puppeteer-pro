@@ -16,3 +16,16 @@ updates:
       include: scope
     ignore:
       - dependency-name: 'user-agents'
+    groups:
+      typescript and eslint:
+        patterns:
+          - '*typescript*'
+          - '*eslint*'
+      jest:
+        patterns:
+          - '*jest*'
+      types:
+        patterns:
+          - '@types/*'
+        exclude-patterns:
+          - '*jest*'
