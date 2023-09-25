@@ -73,6 +73,11 @@ const solver = PuppeteerPro.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
 - Save and load cookies across sessions
 - Supports multiple profiles and switching between profiles
 
+### Manage Local Storage
+
+- Save and load local storage across sessions
+- Supports multiple profiles and switching between profiles
+
 ### Solve Recaptcha
 
 - Solve Google's reCAPTCHA v2

@@ -278,6 +278,13 @@ export function manageCookies(opts: ManageCookiesOption): ManageCookiesPlugin {
   return plugin;
 }
 
+import { ManageLocalStoragePlugin, ManageLocalStorageOption } from './plugins/manage.localstorage';
+export function manageLocalStorage(opts: ManageLocalStorageOption): ManageLocalStoragePlugin {
+  const plugin = new ManageLocalStoragePlugin(opts);
+  plugins.push(plugin);
+  return plugin;
+}
+
 import { SolveRecaptchaPlugin } from './plugins/solve.recaptcha';
 export function solveRecaptchas(accessToken: string): SolveRecaptchaPlugin {
   const plugin = new SolveRecaptchaPlugin(accessToken);

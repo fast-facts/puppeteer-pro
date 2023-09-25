@@ -11,7 +11,8 @@
     "postbuild": "npm run copy:injections && npm run copy:files",
     "copy:injections": "copyfiles -u 1 src/plugins/*/injections/* dist",
     "copy:files": "copyfiles package.json README.md LICENSE dist",
-    "test": "jest"
+    "test": "jest",
+    "test-watch": "jest --watch"
   },
   "repository": {
     "type": "git",

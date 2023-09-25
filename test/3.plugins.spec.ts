@@ -9,6 +9,7 @@ import { avoidDetectionTest } from '../src/plugins/avoid.detection/test.spec';
 import { blockResourcesTest } from '../src/plugins/block.resources/test.spec';
 import { disableDialogsTest } from '../src/plugins/disable.dialogs/test.spec';
 import { manageCookiesTest } from '../src/plugins/manage.cookies/test.spec';
+import { manageLocalStorageTest } from '../src/plugins/manage.localstorage/test.spec';
 // import { solveRecaptchaTest } from '../src/plugins/solve.recaptcha/test.spec';
 
 const pluginTests: PluginTests = {
@@ -40,6 +41,23 @@ const pluginTests: PluginTests = {
     }, {
       describe: 'using profiles',
       tests: [() => manageCookiesTest.profiles(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))]
+    }]
+    // },
+    // {
+    // describe: 'can solve recaptcha',
+    // tests: [() => solveRecaptchaTest(PuppeteerPro.solveRecaptchas(process.env.WIT_AI_ACCESS_TOKEN))]
+  },
+  {
+    describe: 'can manage localStorage',
+    tests: [{
+      describe: 'in manual mode',
+      tests: [() => manageLocalStorageTest.modes('manual')(PuppeteerPro.manageLocalStorage({ saveLocation: 'localStorage.json', mode: 'manual', disableWarning: true }))]
+    }, {
+      describe: 'in monitor mode',
+      tests: [() => manageLocalStorageTest.modes('monitor')(PuppeteerPro.manageLocalStorage({ saveLocation: 'localStorage.json', mode: 'monitor', disableWarning: true }))]
+    }, {
+      describe: 'using profiles',
+      tests: [() => manageLocalStorageTest.profiles(PuppeteerPro.manageLocalStorage({ saveLocation: 'localStorage.json', mode: 'manual', disableWarning: true }))]
     }]
     // },
     // {

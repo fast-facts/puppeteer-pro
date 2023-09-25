@@ -6,7 +6,8 @@ const config: Config.InitialOptions = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest'
   },
-  testMatch: ['**/test/*.spec.ts']
+  testMatch: ['**/test/*.spec.ts'],
+  watchPathIgnorePatterns: ['cookies.json', 'localStorage.json']
 };
 
 export default config;
