@@ -39,12 +39,12 @@
   "dependencies": {
     "axios": "^1.6.2",
     "ghost-cursor": "^1.1.19",
-    "user-agents": "^1.0.1444"
+    "user-agents": "^1.1.46"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
     "@types/node": "^20.10.4",
-    "@types/user-agents": "^1.0.3",
+    "@types/user-agents": "^1.0.4",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "copyfiles": "^2.4.1",
