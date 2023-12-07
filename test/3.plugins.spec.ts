@@ -88,7 +88,7 @@ const runRecursiveTests = (x: PluginTests) => {
           it('on browser connect', async () => {
             const browser = await Puppeteer.launch();
             const browserWSEndpoint = browser.wsEndpoint();
-            browser.disconnect();
+            await browser.disconnect();
 
             await performTest(browserWSEndpoint);
           });
