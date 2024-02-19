@@ -159,7 +159,7 @@ export class ManageCookiesPlugin extends Plugin {
     if (!page) return [];
 
     try {
-      const client = await page.target().createCDPSession();
+      const client = await page.createCDPSession();
       const { cookies } = await client.send('Network.getAllCookies') || {};
 
       return cookies;
