@@ -10,12 +10,14 @@ updates:
     versioning-strategy: increase
     labels:
       - dependencies
+    ignore:
+      - dependency-name: 'user-agents'
+      - dependency-name: 'eslint'
+        versions: ['>=9.0.0']
     commit-message:
       prefix: fix
       prefix-development: chore
       include: scope
-    ignore:
-      - dependency-name: 'user-agents'
     groups:
       typescript and eslint:
         patterns:
