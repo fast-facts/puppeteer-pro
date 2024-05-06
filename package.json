@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "axios": "^1.6.8",
-    "ghost-cursor": "^1.2.0",
+    "ghost-cursor": "^1.2.1",
     "user-agents": "^1.1.46"
   },
   "devDependencies": {
