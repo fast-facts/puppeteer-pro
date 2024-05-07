@@ -1,6 +1,6 @@
 import * as PuppeteerPro from '../../index';
 import * as fs from 'fs';
-import { ProtocolMapping } from 'puppeteer';
+import type ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
