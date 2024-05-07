@@ -2,7 +2,7 @@
 
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import * as Puppeteer from 'puppeteer';
+import type ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 
 import { Plugin } from '../../index';
 
@@ -170,4 +170,4 @@ export class ManageCookiesPlugin extends Plugin {
   }
 }
 
-type Cookie = Puppeteer.ProtocolMapping.Commands['Network.getAllCookies']['returnType']['cookies'][number];
+type Cookie = ProtocolMapping.Commands['Network.getAllCookies']['returnType']['cookies'][number];
