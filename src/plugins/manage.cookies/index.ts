@@ -2,7 +2,7 @@
 
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import type ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
+import type { Protocol } from 'puppeteer';
 
 import { Plugin } from '../../index';
 
@@ -11,8 +11,8 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 export interface ManageCookiesOption {
   saveLocation: string;
   mode: 'manual' | 'monitor';
-  stringify?: (cookies: Record<string, Cookie[]>) => string;
-  parse?: (cookies: string) => Record<string, Cookie[]>;
+  stringify?: (cookies: Record<string, Protocol.Network.Cookie[]>) => string;
+  parse?: (cookies: string) => Record<string, Protocol.Network.Cookie[]>;
   disableWarning?: boolean;
   profile?: 'string';
 }
@@ -20,12 +20,12 @@ export interface ManageCookiesOption {
 export class ManageCookiesPlugin extends Plugin {
   private saveLocation = '';
   private mode = '';
-  private stringify = (cookies: Record<string, Cookie[]>) => JSON.stringify(cookies);
+  private stringify = (cookies: Record<string, Protocol.Network.Cookie[]>) => JSON.stringify(cookies);
   private parse = (cookies: string) => JSON.parse(cookies);
   private disableWarning = false;
   private profile = 'default';
 
-  private allCookies: Record<string, Cookie[]> = {};
+  private allCookies: Record<string, Protocol.Network.Cookie[]> = {};
 
   constructor(opts: ManageCookiesOption) {
     super();
@@ -169,5 +169,3 @@ export class ManageCookiesPlugin extends Plugin {
     }
   }
 }
-
-type Cookie = ProtocolMapping.Commands['Network.getAllCookies']['returnType']['cookies'][number];
