@@ -21,7 +21,7 @@ export function disableDialogsTest(plugin: PuppeteerPro.Plugin) {
             await dialog.dismiss();
             result = false;
           }
-          catch (ex) { null; }
+          catch (_ex) { null; }
         });
 
         await page.evaluate(() => alert('1'));

@@ -29,7 +29,7 @@ export function blockResourcesTest(plugin: PuppeteerPro.Plugin) {
           await page.goto('http://www.google.com');
           return false;
         }
-        catch (ex) {
+        catch (_ex) {
           return true;
         }
       };

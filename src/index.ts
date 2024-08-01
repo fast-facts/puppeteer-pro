@@ -87,7 +87,6 @@ export class Plugin {
     return this.afterLaunch(browser);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async afterLaunch(_browser: Puppeteer.Browser) { null; }
   protected async onClose() { null; }
 
@@ -159,7 +158,6 @@ export class Plugin {
 
     await this.onPageCreated(page);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async onPageCreated(_page: Puppeteer.Page) { null; }
 
   protected async onRequest(request: Puppeteer.HTTPRequest) {
@@ -169,7 +167,6 @@ export class Plugin {
 
     await this.processRequest(request);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async processRequest(_request: Puppeteer.HTTPRequest) { null; }
 
   protected async onDialog(dialog: Dialog) {
@@ -185,7 +182,6 @@ export class Plugin {
 
     await this.processDialog(dialog);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async processDialog(_dialog: Dialog) { null; }
 
   protected async beforeRestart() { null; }
