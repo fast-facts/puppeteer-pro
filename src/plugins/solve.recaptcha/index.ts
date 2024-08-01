@@ -6,7 +6,7 @@ import { createCursor } from 'ghost-cursor';
 import { Plugin } from '../../index';
 import { AvoidDetectionPlugin } from './../avoid.detection/index';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const injection = require(path.resolve(`${__dirname}/injections`) + '/utils.js');
 const randomBetween = (min: number, max: number) => Math.floor(Math.random() * (max - min)) + min;
 

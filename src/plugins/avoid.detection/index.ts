@@ -6,6 +6,7 @@ import { Plugin } from '../../index';
 import { AnonymizeUserAgentPlugin } from './../anonymize.user.agent/index';
 
 const injectionsFolder = resolvePath(`${__dirname}/injections`);
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const injections = readdirSync(injectionsFolder).map(fileName => require(`${injectionsFolder}/${fileName}`));
 
 export class AvoidDetectionPlugin extends Plugin {

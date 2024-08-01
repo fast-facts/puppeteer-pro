@@ -1,4 +1,5 @@
 import * as Puppeteer from 'puppeteer';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import UserAgent = require('user-agents');
 
 import { Plugin } from '../../index';
@@ -21,7 +22,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
     try {
       this.userAgent = new UserAgent({ vendor: 'Google Inc.', platform: 'Win32' }).toString();
     }
-    catch (ex) {
+    catch (_ex) {
       console.warn('Could not create a random user agent');
     }
   }
