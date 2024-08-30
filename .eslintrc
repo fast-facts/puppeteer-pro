@@ -2,8 +2,7 @@
   "root": true,
   "parser": "@typescript-eslint/parser",
   "plugins": [
-    "@typescript-eslint",
-    "deprecation"
+    "@typescript-eslint"
   ],
   "parserOptions": {
     "project": [
@@ -52,6 +51,7 @@
       "error",
       "always"
     ],
+    "@typescript-eslint/no-deprecated": "error",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-unused-expressions": "off",
@@ -63,7 +63,6 @@
         "destructuredArrayIgnorePattern": "^_",
         "varsIgnorePattern": "^_"
       }
-    ],
-    "deprecation/deprecation": "error"
+    ]
   }
 }
