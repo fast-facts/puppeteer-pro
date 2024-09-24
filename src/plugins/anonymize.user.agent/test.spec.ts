@@ -27,10 +27,9 @@ export function anonymizeTest(plugin: PuppeteerPro.Plugin) {
 
       await plugin.restart();
       expect(await getResult()).not.toContain('Headless');
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
     }
   };
-} 
+}

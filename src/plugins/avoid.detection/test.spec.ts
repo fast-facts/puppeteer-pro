@@ -19,8 +19,7 @@ export function avoidDetectionTest(plugin: PuppeteerPro.Plugin) {
 
           // Disable hairline as it seems there is a race condition. Test results keep changing after every run even though the detection is running.
           return await page.evaluate(() => document.querySelector('table')?.querySelectorAll('.failed:not(#hairline-feature)').length === 0);
-        }
-        catch (_ex) {
+        } catch (_ex) {
           return false;
         }
       };
@@ -32,8 +31,7 @@ export function avoidDetectionTest(plugin: PuppeteerPro.Plugin) {
 
       await plugin.restart();
       expect(await getResult()).toBe(true);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
     }

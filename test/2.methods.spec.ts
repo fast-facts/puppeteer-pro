@@ -37,8 +37,7 @@ const addTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
     };
 
     expect(await getResult()).toBe(true);
-  }
-  finally {
+  } finally {
     if (browser) await browser.close();
   }
 };
@@ -61,8 +60,7 @@ const stopTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
 
     await plugin.stop();
     expect(await getResult()).toBe(false);
-  }
-  finally {
+  } finally {
     if (browser) await browser.close();
   }
 };
@@ -88,8 +86,7 @@ const restartTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) =
 
     await plugin.restart();
     expect(await getResult()).toBe(true);
-  }
-  finally {
+  } finally {
     if (browser) await browser.close();
   }
 };
@@ -119,8 +116,7 @@ const dependencyTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string
 
     await plugin.restart();
     expect(await getResult()).toBe(true);
-  }
-  finally {
+  } finally {
     if (browser) await browser.close();
   }
 };
@@ -129,20 +125,20 @@ const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
   tests: [{
     describe: 'can add a plugin',
-    tests: [addTest]
+    tests: [addTest],
   },
   {
     describe: 'can stop a plugin',
-    tests: [stopTest]
+    tests: [stopTest],
   },
   {
     describe: 'can restart a plugin',
-    tests: [restartTest]
+    tests: [restartTest],
   },
   {
     describe: 'can have a plugin with dependencies',
-    tests: [dependencyTest]
-  }]
+    tests: [dependencyTest],
+  }],
 };
 
 const runRecursiveTests = (x: PluginTests) => {
@@ -150,7 +146,6 @@ const runRecursiveTests = (x: PluginTests) => {
     let performTest: (browserWSEndpoint?: string) => Promise<void>;
 
     describe(x.describe, () => {
-
       for (const test of x.tests) {
         if (test instanceof Function) {
           beforeEach(async () => {
@@ -175,7 +170,6 @@ const runRecursiveTests = (x: PluginTests) => {
           runRecursiveTests(test);
         }
       }
-
     });
   }
 };
@@ -184,5 +178,5 @@ runRecursiveTests(pluginTests);
 
 interface PluginTests {
   describe: string;
-  tests: PluginTests[] | ((plugin: TestPlugin) => (browserWSEndpoint?: string) => Promise<void>)[]
+  tests: PluginTests[] | ((plugin: TestPlugin) => (browserWSEndpoint?: string) => Promise<void>)[];
 }

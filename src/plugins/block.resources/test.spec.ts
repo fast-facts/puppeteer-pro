@@ -6,6 +6,7 @@ class AbortPlugin extends PuppeteerPro.Plugin {
     super();
     this.requiresInterception = true;
   }
+
   async processRequest(request: HTTPRequest) {
     await request.continue();
   }
@@ -28,8 +29,7 @@ export function blockResourcesTest(plugin: PuppeteerPro.Plugin) {
         try {
           await page.goto('http://www.google.com');
           return false;
-        }
-        catch (_ex) {
+        } catch (_ex) {
           return true;
         }
       };
@@ -41,8 +41,7 @@ export function blockResourcesTest(plugin: PuppeteerPro.Plugin) {
 
       await plugin.restart();
       expect(await getResult()).toBe(true);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
     }

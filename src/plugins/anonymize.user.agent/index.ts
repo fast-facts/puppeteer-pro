@@ -21,8 +21,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
 
     try {
       this.userAgent = new UserAgent({ vendor: 'Google Inc.', platform: 'Win32' }).toString();
-    }
-    catch (_ex) {
+    } catch (_ex) {
       console.warn('Could not create a random user agent');
     }
   }

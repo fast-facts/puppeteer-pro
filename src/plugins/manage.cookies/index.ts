@@ -163,8 +163,7 @@ export class ManageCookiesPlugin extends Plugin {
       const { cookies } = await client.send('Network.getAllCookies') || {};
 
       return cookies;
-    }
-    catch {
+    } catch {
       return [];
     }
   }

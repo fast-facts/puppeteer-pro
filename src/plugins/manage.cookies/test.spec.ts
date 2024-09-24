@@ -45,8 +45,7 @@ export const manageCookiesTest = {
       await plugin.clear();
       await plugin.stop();
       expect(await getResult()).toBe(0);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
 
@@ -55,7 +54,7 @@ export const manageCookiesTest = {
   },
   profiles: (plugin: ManageCookiesPlugin) => async (browserWSEndpoint?: string) => {
     const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
-    let page;
+    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
       page = await browser.newPage();
@@ -81,14 +80,13 @@ export const manageCookiesTest = {
 
       expect(await getResult('Profile2', 'Profile1')).toBe(0);
       expect(await getResult('Profile2', 'Profile2')).toBe(1);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
 
       fs.unlinkSync('cookies.json');
     }
-  }
+  },
 };
 
 type Cookie = ProtocolMapping.Commands['Network.getAllCookies']['returnType']['cookies'][number];

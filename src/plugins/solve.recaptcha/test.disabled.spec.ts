@@ -18,13 +18,13 @@ export function solveRecaptchaTest(plugin: ManageCookiesPlugin) {
         await plugin.solveRecaptcha(page);
 
         await page.waitForFunction(() => {
-          const iframe = document.querySelector('iframe[src*="api2/anchor"]');
+          const iframe = document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]');
           return iframe && iframe.contentDocument && iframe.contentDocument.querySelector('#recaptcha-anchor');
         });
 
         return page.evaluate(() => {
-          const iframe = document.querySelector('iframe[src*="api2/anchor"]');
-          return !!iframe.contentDocument.querySelector('.recaptcha-checkbox-checked');
+          const iframe = document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]');
+          return iframe && iframe.contentDocument && iframe.contentDocument.querySelector('.recaptcha-checkbox-checked');
         });
       };
 
@@ -35,8 +35,7 @@ export function solveRecaptchaTest(plugin: ManageCookiesPlugin) {
 
       await plugin.restart();
       expect(await getResult()).toBe(true);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
     }

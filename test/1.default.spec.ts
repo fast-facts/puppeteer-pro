@@ -7,4 +7,3 @@ describe('Original methods', () => {
     });
   });
 });
-

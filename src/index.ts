@@ -158,6 +158,7 @@ export class Plugin {
 
     await this.onPageCreated(page);
   }
+
   protected async onPageCreated(_page: Puppeteer.Page) { null; }
 
   protected async onRequest(request: Puppeteer.HTTPRequest) {
@@ -167,6 +168,7 @@ export class Plugin {
 
     await this.processRequest(request);
   }
+
   protected async processRequest(_request: Puppeteer.HTTPRequest) { null; }
 
   protected async onDialog(dialog: Dialog) {
@@ -182,6 +184,7 @@ export class Plugin {
 
     await this.processDialog(dialog);
   }
+
   protected async processDialog(_dialog: Dialog) { null; }
 
   protected async beforeRestart() { null; }
@@ -195,6 +198,7 @@ export class Plugin {
 
     await this.afterRestart();
   }
+
   protected async afterRestart() { null; }
 
   protected async beforeStop() { null; }
@@ -216,6 +220,7 @@ export class Plugin {
 
     await this.afterStop();
   }
+
   protected async afterStop() { null; }
 
   protected async getFirstPage() {
@@ -267,14 +272,14 @@ export function disableDialogs(logMessages = false): DisableDialogsPlugin {
   return plugin;
 }
 
-import { ManageCookiesPlugin, ManageCookiesOption } from './plugins/manage.cookies';
+import { ManageCookiesOption, ManageCookiesPlugin } from './plugins/manage.cookies';
 export function manageCookies(opts: ManageCookiesOption): ManageCookiesPlugin {
   const plugin = new ManageCookiesPlugin(opts);
   plugins.push(plugin);
   return plugin;
 }
 
-import { ManageLocalStoragePlugin, ManageLocalStorageOption } from './plugins/manage.localstorage';
+import { ManageLocalStorageOption, ManageLocalStoragePlugin } from './plugins/manage.localstorage';
 export function manageLocalStorage(opts: ManageLocalStorageOption): ManageLocalStoragePlugin {
   const plugin = new ManageLocalStoragePlugin(opts);
   plugins.push(plugin);

@@ -20,8 +20,7 @@ export function disableDialogsTest(plugin: PuppeteerPro.Plugin) {
           try {
             await dialog.dismiss();
             result = false;
-          }
-          catch (_ex) { null; }
+          } catch (_ex) { null; }
         });
 
         await page.evaluate(() => alert('1'));
@@ -36,8 +35,7 @@ export function disableDialogsTest(plugin: PuppeteerPro.Plugin) {
 
       await plugin.restart();
       expect(await getResult()).toBe(true);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
     }

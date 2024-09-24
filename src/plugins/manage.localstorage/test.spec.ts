@@ -45,8 +45,7 @@ export const manageLocalStorageTest = {
       await plugin.clear();
       await plugin.stop();
       expect(await getResult()).toBe(0);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
 
@@ -55,7 +54,7 @@ export const manageLocalStorageTest = {
   },
   profiles: (plugin: ManageLocalStoragePlugin) => async (browserWSEndpoint?: string) => {
     const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
-    let page;
+    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
       page = await browser.newPage();
@@ -83,14 +82,13 @@ export const manageLocalStorageTest = {
 
       expect(await getResult('Profile2', 'Profile1')).toBe(0);
       expect(await getResult('Profile2', 'Profile2')).toBe(1);
-    }
-    finally {
+    } finally {
       if (page) await page.close();
       if (browser) await browser.close();
 
       fs.unlinkSync('localStorage.json');
     }
-  }
+  },
 };
 
 type LocalStorage = Record<string, Record<string, string>>;

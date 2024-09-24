@@ -20,13 +20,13 @@ export class SolveRecaptchaPlugin extends Plugin {
   }
 
   async waitForCaptcha(page: Puppeteer.Page, timeout?: number) {
-    return page.waitForFunction(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')
-      && !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'), { timeout });
+    return page.waitForFunction(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]') &&
+      !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'), { timeout });
   }
 
   async hasCaptcha(page: Puppeteer.Page) {
-    return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]')
-      && !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'));
+    return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]') &&
+      !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'));
   }
 
   async solveRecaptcha(page: Puppeteer.Page) {
@@ -80,8 +80,8 @@ export class SolveRecaptchaPlugin extends Plugin {
       const response = await axios.post<any>('https://api.wit.ai/speech?v=20220527', audioBuffer, {
         headers: {
           Authorization: `Bearer ${this.witAiAccessToken}`,
-          'Content-Type': 'audio/wav'
-        }
+          'Content-Type': 'audio/wav',
+        },
       });
 
       const data = typeof response.data === 'string' ? JSON.parse(response.data.split('\r\n').slice(-1)[0] || '{}') : response.data;
