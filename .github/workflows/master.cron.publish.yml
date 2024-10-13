@@ -12,13 +12,13 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm install
 
-      - uses: DamianReeves/write-file-action@v1.2
+      - uses: DamianReeves/write-file-action@v1.3
         with:
           path: .env
           contents: ${{ secrets.ENV }}
@@ -28,7 +28,7 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - uses: codfish/semantic-release-action@v2
+      - uses: codfish/semantic-release-action@v3
         with:
           plugins: |
             [
