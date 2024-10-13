@@ -7,7 +7,7 @@ type ManageLocalStoragePlugin = ReturnType<typeof PuppeteerPro.manageLocalStorag
 
 export const manageLocalStorageTest = {
   modes: (mode: string) => (plugin: ManageLocalStoragePlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
@@ -53,7 +53,7 @@ export const manageLocalStorageTest = {
     }
   },
   profiles: (plugin: ManageLocalStoragePlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

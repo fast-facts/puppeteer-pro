@@ -23,7 +23,7 @@ class TestPlugin extends PuppeteerPro.Plugin {
 }
 
 const addTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
 
   try {
     const getResult = async () => {
@@ -43,7 +43,7 @@ const addTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
 };
 
 const stopTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
 
   try {
     const getResult = async () => {
@@ -66,7 +66,7 @@ const stopTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
 };
 
 const restartTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
 
   try {
     const getResult = async () => {
@@ -95,7 +95,7 @@ const dependencyTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string
   const dependency = new TestPlugin();
   await plugin.addDependency(dependency);
 
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
 
   try {
     const getResult = async () => {
@@ -160,7 +160,7 @@ const runRecursiveTests = (x: PluginTests) => {
           });
 
           it('on browser connect', async () => {
-            const browser = await Puppeteer.launch();
+            const browser = await Puppeteer.launch({ args: ['--no-sandbox'] });
             const browserWSEndpoint = browser.wsEndpoint();
             await browser.disconnect();
 

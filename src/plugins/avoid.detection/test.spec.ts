@@ -4,7 +4,7 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 
 export function avoidDetectionTest(plugin: PuppeteerPro.Plugin) {
   return async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

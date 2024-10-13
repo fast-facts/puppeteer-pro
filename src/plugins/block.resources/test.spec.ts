@@ -17,7 +17,7 @@ export function blockResourcesTest(plugin: PuppeteerPro.Plugin) {
   return async (browserWSEndpoint?: string) => {
     PuppeteerPro.addPlugin(new AbortPlugin());
 
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

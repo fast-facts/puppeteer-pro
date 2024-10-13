@@ -8,7 +8,7 @@ type ManageCookiesPlugin = ReturnType<typeof PuppeteerPro.manageCookies>;
 
 export const manageCookiesTest = {
   modes: (mode: string) => (plugin: ManageCookiesPlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
@@ -53,7 +53,7 @@ export const manageCookiesTest = {
     }
   },
   profiles: (plugin: ManageCookiesPlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch();
+    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
