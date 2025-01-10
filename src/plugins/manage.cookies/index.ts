@@ -2,7 +2,7 @@
 
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import type { Protocol } from 'puppeteer';
+import type { Cookie } from 'puppeteer';
 
 import { Plugin } from '../../index';
 
@@ -11,8 +11,8 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 export interface ManageCookiesOption {
   saveLocation: string;
   mode: 'manual' | 'monitor';
-  stringify?: (cookies: Record<string, Protocol.Network.Cookie[]>) => string;
-  parse?: (cookies: string) => Record<string, Protocol.Network.Cookie[]>;
+  stringify?: (cookies: Record<string, Cookie[]>) => string;
+  parse?: (cookies: string) => Record<string, Cookie[]>;
   disableWarning?: boolean;
   profile?: 'string';
 }
@@ -20,12 +20,12 @@ export interface ManageCookiesOption {
 export class ManageCookiesPlugin extends Plugin {
   private saveLocation = '';
   private mode = '';
-  private stringify = (cookies: Record<string, Protocol.Network.Cookie[]>) => JSON.stringify(cookies);
+  private stringify = (cookies: Record<string, Cookie[]>) => JSON.stringify(cookies);
   private parse = (cookies: string) => JSON.parse(cookies);
   private disableWarning = false;
   private profile = 'default';
 
-  private allCookies: Record<string, Protocol.Network.Cookie[]> = {};
+  private allCookies: Record<string, Cookie[]> = {};
 
   constructor(opts: ManageCookiesOption) {
     super();
@@ -125,8 +125,8 @@ export class ManageCookiesPlugin extends Plugin {
       await page.goto('http://www.google.com');
     }
 
-    await page.deleteCookie(...await this.getCookies());
-    await page.setCookie(...this.allCookies[this.profile] || []);
+    await page.browser().deleteCookie(...await this.getCookies());
+    await page.browser().setCookie(...this.allCookies[this.profile] || []);
 
     if (requiresRealPage) {
       await page.goBack();
@@ -143,7 +143,7 @@ export class ManageCookiesPlugin extends Plugin {
       await page.goto('http://www.google.com');
     }
 
-    await page.deleteCookie(...this.allCookies[this.profile] || []);
+    await page.browser().deleteCookie(...this.allCookies[this.profile] || []);
     delete this.allCookies[this.profile];
 
     const cookiesString = this.stringify(this.allCookies);
@@ -159,8 +159,7 @@ export class ManageCookiesPlugin extends Plugin {
     if (!page) return [];
 
     try {
-      const client = await page.createCDPSession();
-      const { cookies } = await client.send('Network.getAllCookies') || {};
+      const cookies = await page.browser().cookies();
 
       return cookies;
     } catch {
