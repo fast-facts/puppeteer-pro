@@ -23,7 +23,7 @@ export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppe
 }
 
 /** The method launches a browser instance with given arguments. The browser will be closed when the parent node.js process is closed. */
-export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.BrowserLaunchArgumentOptions & Puppeteer.BrowserConnectOptions): Promise<Puppeteer.Browser> {
+export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.ConnectOptions): Promise<Puppeteer.Browser> {
   if (!options) options = {};
 
   process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
@@ -178,7 +178,6 @@ export class Plugin {
     dialog.dismiss = async () => {
       if (dialog.handled) return;
 
-      dialog.handled = true;
       await _dismiss.apply(dialog);
     };
 
