@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.13.14",
+    "@types/node": "^22.13.15",
     "@types/user-agents": "^1.0.4",
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
