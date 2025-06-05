@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import type { Cookie } from 'puppeteer';
 
-import { Plugin } from '../../index';
+import { Plugin } from '../..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
@@ -126,8 +126,8 @@ export class ManageCookiesPlugin extends Plugin {
       await page.goto('http://www.google.com');
     }
 
-    await page.browser().deleteCookie(...await this.getCookies());
-    await page.browser().setCookie(...this.allCookies[this.profile] || []);
+    await this.browser?.deleteCookie(...await this.getCookies());
+    await this.browser?.setCookie(...this.allCookies[this.profile] || []);
 
     if (requiresRealPage) {
       await page.goBack();
@@ -144,7 +144,7 @@ export class ManageCookiesPlugin extends Plugin {
       await page.goto('http://www.google.com');
     }
 
-    await page.browser().deleteCookie(...this.allCookies[this.profile] || []);
+    await this.browser?.deleteCookie(...this.allCookies[this.profile] || []);
     delete this.allCookies[this.profile];
 
     const cookiesString = this.stringify(this.allCookies);
@@ -160,7 +160,7 @@ export class ManageCookiesPlugin extends Plugin {
     if (!page) return [];
 
     try {
-      const cookies = await page.browser().cookies();
+      const cookies = await this.browser?.cookies() || [];
 
       return cookies;
     } catch {

@@ -1,39 +1,40 @@
-import * as PuppeteerPro from '../../index';
+import { Browser, BrowserContext } from '../..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-export function avoidDetectionTest(plugin: PuppeteerPro.Plugin) {
-  return async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
-    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
+export async function avoidDetectionTest(createBrowser: () => Promise<Browser | BrowserContext>) {
+  const browser = await createBrowser();
 
-    try {
-      page = await browser.newPage();
+  const plugin = await browser.avoidDetection();
 
-      const getResult = async () => {
-        if (!page) return;
+  let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
-        try {
-          await page.goto('https://bot.sannysoft.com');
-          await sleep(1000);
+  try {
+    page = await browser.newPage();
 
-          // Disable hairline as it seems there is a race condition. Test results keep changing after every run even though the detection is running.
-          return await page.evaluate(() => document.querySelector('table')?.querySelectorAll('.failed:not(#hairline-feature)').length === 0);
-        } catch (_ex) {
-          return false;
-        }
-      };
+    const getResult = async () => {
+      if (!page) return;
 
-      expect(await getResult()).toBe(true);
+      try {
+        await page.goto('https://bot.sannysoft.com');
+        await sleep(1000);
 
-      await plugin.stop();
-      expect(await getResult()).toBe(false);
+        // Disable hairline as it seems there is a race condition. Test results keep changing after every run even though the detection is running.
+        return await page.evaluate(() => document.querySelector('table')?.querySelectorAll('.failed:not(#hairline-feature)').length === 0);
+      } catch (_ex) {
+        return false;
+      }
+    };
 
-      await plugin.restart();
-      expect(await getResult()).toBe(true);
-    } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
-    }
-  };
+    expect(await getResult()).toBe(true);
+
+    await plugin.stop();
+    expect(await getResult()).toBe(false);
+
+    await plugin.restart();
+    expect(await getResult()).toBe(true);
+  } finally {
+    if (page) await page.close();
+    if (browser) await browser.close();
+  }
 }

@@ -1,4 +1,4 @@
-import * as PuppeteerPro from '../src/index';
+import * as PuppeteerPro from '../src';
 
 describe('Original methods', () => {
   ['connect', 'launch'].map(x => {

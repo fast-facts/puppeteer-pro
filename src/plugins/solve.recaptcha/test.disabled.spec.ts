@@ -1,10 +1,11 @@
-import * as PuppeteerPro from '../../index';
+import { Browser, BrowserContext } from 'puppeteer';
+import * as PuppeteerPro from '../..';
 
 type ManageCookiesPlugin = ReturnType<typeof PuppeteerPro.solveRecaptchas>;
 
 export function solveRecaptchaTest(plugin: ManageCookiesPlugin) {
-  return async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+  return async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

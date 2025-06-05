@@ -1,43 +1,44 @@
-import * as PuppeteerPro from '../../index';
+import { Browser, BrowserContext } from '../..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-export function disableDialogsTest(plugin: PuppeteerPro.Plugin) {
-  return async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
-    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
+export async function disableDialogsTest(createBrowser: () => Promise<Browser | BrowserContext>) {
+  const browser = await createBrowser();
 
-    try {
-      page = await browser.newPage();
+  const plugin = await browser.disableDialogs();
 
-      const getResult = async () => {
-        if (!page) return;
+  let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
-        let result = true;
+  try {
+    page = await browser.newPage();
 
-        page.once('dialog', async dialog => {
-          await sleep(100);
-          try {
-            await dialog.dismiss();
-            result = false;
-          } catch (_ex) { null; }
-        });
+    const getResult = async () => {
+      if (!page) return;
 
-        await page.evaluate(() => alert('1'));
+      let result = true;
 
-        return result;
-      };
+      page.once('dialog', async dialog => {
+        await sleep(100);
+        try {
+          await dialog.dismiss();
+          result = false;
+        } catch (_ex) { null; }
+      });
 
-      expect(await getResult()).toBe(true);
+      await page.evaluate(() => alert('1'));
 
-      await plugin.stop();
-      expect(await getResult()).toBe(false);
+      return result;
+    };
 
-      await plugin.restart();
-      expect(await getResult()).toBe(true);
-    } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
-    }
-  };
+    expect(await getResult()).toBe(true);
+
+    await plugin.stop();
+    expect(await getResult()).toBe(false);
+
+    await plugin.restart();
+    expect(await getResult()).toBe(true);
+  } finally {
+    if (page) await page.close();
+    if (browser) await browser.close();
+  }
 }

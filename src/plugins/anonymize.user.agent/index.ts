@@ -2,7 +2,7 @@ import * as Puppeteer from 'puppeteer';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import UserAgent = require('user-agents');
 
-import { Plugin } from '../../index';
+import { Browser, BrowserContext, Plugin } from '../..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
@@ -26,7 +26,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
     }
   }
 
-  protected async afterLaunch(browser: Puppeteer.Browser) {
+  protected async afterLaunch(browser: Browser | BrowserContext) {
     const _newPage = browser.newPage;
     browser.newPage = async (): Promise<Puppeteer.Page> => {
       const page = await _newPage.apply(browser);

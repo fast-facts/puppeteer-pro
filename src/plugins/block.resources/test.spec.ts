@@ -1,7 +1,8 @@
 import { HTTPRequest } from 'puppeteer';
-import * as PuppeteerPro from '../../index';
+import { Browser, BrowserContext, Plugin } from '../..';
+import { Resource } from '.';
 
-class AbortPlugin extends PuppeteerPro.Plugin {
+class AbortPlugin extends Plugin {
   constructor() {
     super();
     this.requiresInterception = true;
@@ -13,11 +14,13 @@ class AbortPlugin extends PuppeteerPro.Plugin {
 }
 
 // Test multiple request handlers at once
-export function blockResourcesTest(plugin: PuppeteerPro.Plugin) {
-  return async (browserWSEndpoint?: string) => {
-    PuppeteerPro.addPlugin(new AbortPlugin());
+export function blockResourcesTest(...resources: Resource[]) {
+  return async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
 
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+    await browser.addPlugin(new AbortPlugin());
+    const plugin = await browser.blockResources(...resources);
+
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

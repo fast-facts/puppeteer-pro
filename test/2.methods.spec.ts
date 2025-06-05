@@ -1,13 +1,13 @@
 import * as Puppeteer from 'puppeteer';
-import { Browser } from 'puppeteer';
-import * as PuppeteerPro from '../src/index';
+import * as PuppeteerPro from '../src';
+import { Browser, BrowserContext } from '../src';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
 class TestPlugin extends PuppeteerPro.Plugin {
   _state = false;
 
-  async afterLaunch(browser: Browser) {
+  async afterLaunch(browser: Puppeteer.Browser | Puppeteer.BrowserContext) {
     const _newPage = browser.newPage;
     browser.newPage = async () => {
       const page = await _newPage.apply(browser);
@@ -22,8 +22,11 @@ class TestPlugin extends PuppeteerPro.Plugin {
   set state(state) { this._state = state; }
 }
 
-const addTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+const addTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+  const browser = await createBrowser();
+
+  browser.clearPlugins();
+  await browser.addPlugin(plugin);
 
   try {
     const getResult = async () => {
@@ -42,8 +45,11 @@ const addTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
   }
 };
 
-const stopTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+const stopTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+  const browser = await createBrowser();
+
+  browser.clearPlugins();
+  await browser.addPlugin(plugin);
 
   try {
     const getResult = async () => {
@@ -65,8 +71,11 @@ const stopTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
   }
 };
 
-const restartTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+const restartTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+  const browser = await createBrowser();
+
+  browser.clearPlugins();
+  await browser.addPlugin(plugin);
 
   try {
     const getResult = async () => {
@@ -91,11 +100,14 @@ const restartTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) =
   }
 };
 
-const dependencyTest = (plugin: TestPlugin) => async (browserWSEndpoint?: string) => {
+const dependencyTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
   const dependency = new TestPlugin();
   await plugin.addDependency(dependency);
 
-  const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+  const browser = await createBrowser();
+
+  browser.clearPlugins();
+  await browser.addPlugin(plugin);
 
   try {
     const getResult = async () => {
@@ -143,20 +155,25 @@ const pluginTests: PluginTests = {
 
 const runRecursiveTests = (x: PluginTests) => {
   if (x.describe && x.tests) {
-    let performTest: (browserWSEndpoint?: string) => Promise<void>;
+    let performTest: (createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>;
 
     describe(x.describe, () => {
       for (const test of x.tests) {
         if (test instanceof Function) {
+          let browser: Browser | undefined;
+
           beforeEach(async () => {
-            await PuppeteerPro.clearPlugins();
             const plugin = new TestPlugin();
-            PuppeteerPro.addPlugin(plugin);
             performTest = test(plugin);
           });
 
+          afterEach(async () => {
+            await browser?.close();
+            browser = undefined;
+          });
+
           it('on browser launch', async () => {
-            await performTest();
+            await performTest(() => PuppeteerPro.launch({ args: ['--no-sandbox'] }));
           });
 
           it('on browser connect', async () => {
@@ -164,7 +181,13 @@ const runRecursiveTests = (x: PluginTests) => {
             const browserWSEndpoint = browser.wsEndpoint();
             await browser.disconnect();
 
-            await performTest(browserWSEndpoint);
+            await performTest(() => PuppeteerPro.connect({ browserWSEndpoint }));
+          });
+
+          it('on browser context', async () => {
+            browser = await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+
+            await performTest(() => browser!.createBrowserContext());
           });
         } else {
           runRecursiveTests(test);
@@ -178,5 +201,5 @@ runRecursiveTests(pluginTests);
 
 interface PluginTests {
   describe: string;
-  tests: PluginTests[] | ((plugin: TestPlugin) => (browserWSEndpoint?: string) => Promise<void>)[];
+  tests: PluginTests[] | ((plugin: TestPlugin) => (createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>)[];
 }

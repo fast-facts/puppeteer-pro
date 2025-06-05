@@ -18,14 +18,15 @@ Puppeteer-Pro can do all the same things as [`puppeteer`](https://github.com/pup
 // Puppeteer-Pro is a drop-in replacement for puppeteer
 const PuppeteerPro = require('puppeteer-pro');
 
-// Enable the 'avoidDetection' plugin to prevent headless detection
-PuppeteerPro.avoidDetection();
-
-// Enable the 'solveRecaptchas' plugin to solve Google's recaptchas (remember to provide a wit.api API access token)
-const solver = PuppeteerPro.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
-
 (async () => {
   const browser = await PuppeteerPro.launch();
+
+  // Enable the 'avoidDetection' plugin to prevent headless detection
+  browser.avoidDetection();
+
+  // Enable the 'solveRecaptchas' plugin to solve Google's recaptchas (remember to provide a wit.api API access token)
+  const solver = await browser.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
+
   const page = await browser.newPage();
   
   console.log('Testing the 🐱‍👤 avoidDetection 🐱‍👤 plugin..')

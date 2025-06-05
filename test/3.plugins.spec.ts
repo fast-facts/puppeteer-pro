@@ -2,7 +2,8 @@
 require('dotenv-safe').config();
 
 import * as Puppeteer from 'puppeteer';
-import * as PuppeteerPro from '../src/index';
+import * as PuppeteerPro from '../src';
+import { Browser, BrowserContext } from '../src';
 
 import { anonymizeTest } from '../src/plugins/anonymize.user.agent/test.spec';
 import { avoidDetectionTest } from '../src/plugins/avoid.detection/test.spec';
@@ -16,48 +17,44 @@ const pluginTests: PluginTests = {
   describe: 'PuppeteerPro\'s built-in plugins',
   tests: [{
     describe: 'can anonymize user agent',
-    tests: [() => anonymizeTest(PuppeteerPro.anonymizeUserAgent())],
+    tests: [anonymizeTest],
   },
   {
     describe: 'can avoid detection',
-    tests: [() => avoidDetectionTest(PuppeteerPro.avoidDetection())],
+    tests: [avoidDetectionTest],
   },
   {
     describe: 'can block resources',
-    tests: [() => blockResourcesTest(PuppeteerPro.blockResources('document'))],
+    tests: [blockResourcesTest('document')],
   },
   {
     describe: 'can disable dialogs',
-    tests: [() => disableDialogsTest(PuppeteerPro.disableDialogs())],
+    tests: [disableDialogsTest],
   },
   {
     describe: 'can manage cookies',
     tests: [{
       describe: 'in manual mode',
-      tests: [() => manageCookiesTest.modes('manual')(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))],
+      tests: [manageCookiesTest.modes('manual', { saveLocation: 'cookies.json', mode: 'manual', disableWarning: true })],
     }, {
       describe: 'in monitor mode',
-      tests: [() => manageCookiesTest.modes('monitor')(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'monitor', disableWarning: true }))],
+      tests: [manageCookiesTest.modes('monitor', { saveLocation: 'cookies.json', mode: 'monitor', disableWarning: true })],
     }, {
       describe: 'using profiles',
-      tests: [() => manageCookiesTest.profiles(PuppeteerPro.manageCookies({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true }))],
+      tests: [manageCookiesTest.profiles({ saveLocation: 'cookies.json', mode: 'manual', disableWarning: true })],
     }],
-    // },
-    // {
-    // describe: 'can solve recaptcha',
-    // tests: [() => solveRecaptchaTest(PuppeteerPro.solveRecaptchas(process.env.WIT_AI_ACCESS_TOKEN))]
   },
   {
     describe: 'can manage localStorage',
     tests: [{
       describe: 'in manual mode',
-      tests: [() => manageLocalStorageTest.modes('manual')(PuppeteerPro.manageLocalStorage({ saveLocation: 'localStorage.json', mode: 'manual', disableWarning: true }))],
+      tests: [manageLocalStorageTest.modes('manual', { saveLocation: 'localStorage.json', mode: 'manual', disableWarning: true })],
     }, {
       describe: 'in monitor mode',
-      tests: [() => manageLocalStorageTest.modes('monitor')(PuppeteerPro.manageLocalStorage({ saveLocation: 'localStorage.json', mode: 'monitor', disableWarning: true }))],
+      tests: [manageLocalStorageTest.modes('monitor', { saveLocation: 'localStorage.json', mode: 'monitor', disableWarning: true })],
     }, {
       describe: 'using profiles',
-      tests: [() => manageLocalStorageTest.profiles(PuppeteerPro.manageLocalStorage({ saveLocation: 'localStorage.json', mode: 'manual', disableWarning: true }))],
+      tests: [manageLocalStorageTest.profiles({ saveLocation: 'localStorage.json', mode: 'manual', disableWarning: true })],
     }],
     // },
     // {
@@ -68,20 +65,20 @@ const pluginTests: PluginTests = {
 
 const runRecursiveTests = (x: PluginTests) => {
   if (x.describe && x.tests) {
-    let performTest: (browserWSEndpoint?: string) => Promise<void>;
-
     describe(x.describe, () => {
       for (const test of x.tests) {
         if (test instanceof Function) {
           jest.setTimeout(30 * 1000);
 
-          beforeEach(async () => {
-            await PuppeteerPro.clearPlugins();
-            performTest = test();
+          let browser: Browser | undefined;
+
+          afterEach(async () => {
+            await browser?.close();
+            browser = undefined;
           });
 
           it('on browser launch', async () => {
-            await performTest();
+            await test(() => PuppeteerPro.launch({ args: ['--no-sandbox'] }));
           });
 
           it('on browser connect', async () => {
@@ -89,7 +86,13 @@ const runRecursiveTests = (x: PluginTests) => {
             const browserWSEndpoint = browser.wsEndpoint();
             await browser.disconnect();
 
-            await performTest(browserWSEndpoint);
+            await test(() => PuppeteerPro.connect({ browserWSEndpoint }));
+          });
+
+          it('on browser context', async () => {
+            browser = await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+
+            await test(() => browser!.createBrowserContext());
           });
         } else {
           runRecursiveTests(test);
@@ -103,5 +106,5 @@ runRecursiveTests(pluginTests);
 
 interface PluginTests {
   describe: string;
-  tests: PluginTests[] | (() => (browserWSEndpoint?: string) => Promise<void>)[];
+  tests: PluginTests[] | ((createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>)[];
 }

@@ -2,8 +2,8 @@ import { readdirSync } from 'fs';
 import { resolve as resolvePath } from 'path';
 import * as Puppeteer from 'puppeteer';
 
-import { Plugin } from '../../index';
-import { AnonymizeUserAgentPlugin } from './../anonymize.user.agent/index';
+import { Plugin } from '../..';
+import { AnonymizeUserAgentPlugin } from './../anonymize.user.agent';
 
 const injectionsFolder = resolvePath(`${__dirname}/injections`);
 // eslint-disable-next-line @typescript-eslint/no-require-imports

@@ -4,48 +4,127 @@ import * as events from 'events';
 // Puppeteer Defaults
 import * as Puppeteer from 'puppeteer';
 
-const browserEvents = new events.EventEmitter();
-
-export async function connect(options?: Puppeteer.ConnectOptions): Promise<Puppeteer.Browser> {
+export async function connect(options?: Puppeteer.ConnectOptions): Promise<Browser> {
   const browser = await Puppeteer.connect(options || {});
 
-  for (const plugin of plugins) {
-    await plugin.init(browser);
-  }
-
-  const _close = browser.close;
-  browser.close = async () => {
-    await _close.apply(browser);
-    browserEvents.emit('close');
-  };
-
-  return browser;
+  return createBrowser(browser);
 }
 
-/** The method launches a browser instance with given arguments. The browser will be closed when the parent node.js process is closed. */
-export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.ConnectOptions): Promise<Puppeteer.Browser> {
+export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.ConnectOptions): Promise<Browser> {
   if (!options) options = {};
 
   process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
   const browser = await Puppeteer.launch({ defaultViewport: undefined, ...options });
 
-  for (const plugin of plugins) {
-    await plugin.init(browser);
-  }
+  return createBrowser(browser);
+}
+
+async function createBrowser(puppeteerBrowser: Puppeteer.Browser): Promise<Browser> {
+  const browser = puppeteerBrowser as Browser;
 
   const _close = browser.close;
   browser.close = async () => {
     await _close.apply(browser);
-    browserEvents.emit('close');
+    browser.browserEvents.emit('close');
   };
+
+  const _createBrowserContext = browser.createBrowserContext;
+  browser.createBrowserContext = async (options?: Puppeteer.BrowserContextOptions) => {
+    const context: Puppeteer.BrowserContext = await _createBrowserContext.apply(browser, options);
+
+    return createBrowserContext(context);
+  };
+
+  addPluginSupport(browser);
 
   return browser;
 }
 
+async function createBrowserContext(puppeteerBrowserContext: Puppeteer.BrowserContext): Promise<BrowserContext> {
+  const browser = puppeteerBrowserContext as BrowserContext;
+
+  const _close = browser.close;
+  browser.close = async () => {
+    await _close.apply(browser);
+    browser.browserEvents.emit('close');
+  };
+
+  addPluginSupport(browser);
+
+  return browser;
+}
+
+function addPluginSupport(browser: Browser | BrowserContext) {
+  browser.plugins = [];
+  browser.browserEvents = new events.EventEmitter();
+  browser.interceptions = 0;
+
+  browser.addPlugin = async (plugin: Plugin) => {
+    browser.plugins.push(plugin);
+    await plugin.init(browser);
+  };
+
+  browser.clearPlugins = () => {
+    browser.plugins.forEach(async plugin => {
+      await plugin.stop();
+    });
+
+    browser.plugins = [];
+  };
+
+  browser.anonymizeUserAgent = async (): Promise<AnonymizeUserAgentPlugin> => {
+    const plugin = new AnonymizeUserAgentPlugin();
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+
+  browser.avoidDetection = async (): Promise<AvoidDetectionPlugin> => {
+    const plugin = new AvoidDetectionPlugin();
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+
+  browser.blockResources = async (...resources: Resource[]): Promise<BlockResourcesPlugin> => {
+    const plugin = new BlockResourcesPlugin(resources);
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+
+  browser.disableDialogs = async (logMessages = false): Promise<DisableDialogsPlugin> => {
+    const plugin = new DisableDialogsPlugin(logMessages);
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+
+  browser.manageCookies = async (opts: ManageCookiesOption): Promise<ManageCookiesPlugin> => {
+    const plugin = new ManageCookiesPlugin(opts);
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+
+  browser.manageLocalStorage = async (opts: ManageLocalStorageOption): Promise<ManageLocalStoragePlugin> => {
+    const plugin = new ManageLocalStoragePlugin(opts);
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+
+  browser.solveRecaptchas = async (accessToken: string): Promise<SolveRecaptchaPlugin> => {
+    const plugin = new SolveRecaptchaPlugin(accessToken);
+    await browser.addPlugin(plugin);
+    return plugin;
+  };
+}
+
 // PuppeteerPro
-let interceptions = 0;
+export interface Browser extends Puppeteer.Browser, Pluginable {
+  createBrowserContext(options?: Puppeteer.BrowserContextOptions): Promise<BrowserContext>;
+}
+
+export interface BrowserContext extends Puppeteer.BrowserContext, Pluginable {
+}
+
 export class Plugin {
-  protected browser: Puppeteer.Browser | null = null;
+  protected browser: Browser | BrowserContext | null = null;
   private initialized = false;
   private startCounter = 0;
   protected dependencies: Plugin[] = [];
@@ -58,13 +137,13 @@ export class Plugin {
     this.dependencies.push(plugin);
   }
 
-  async init(browser: Puppeteer.Browser) {
+  async init(browser: Browser | BrowserContext) {
     if (this.initialized) return;
 
     this.browser = browser;
 
     const offOnClose: (() => void)[] = [];
-    browserEvents.once('close', async () => {
+    browser.browserEvents.once('close', async () => {
       offOnClose.forEach(fn => fn());
 
       this.browser = null;
@@ -87,7 +166,7 @@ export class Plugin {
     return this.afterLaunch(browser);
   }
 
-  protected async afterLaunch(_browser: Puppeteer.Browser) { null; }
+  protected async afterLaunch(_browser: Browser | BrowserContext) { null; }
   protected async onClose() { null; }
 
   protected async onTargetCreated(target: Puppeteer.Target) {
@@ -191,7 +270,7 @@ export class Plugin {
     await this.beforeRestart();
 
     this.startCounter++;
-    if (this.requiresInterception) interceptions++;
+    if (this.requiresInterception && this.browser) this.browser.interceptions++;
 
     this.dependencies.forEach(x => x.restart());
 
@@ -205,9 +284,9 @@ export class Plugin {
     await this.beforeStop();
 
     this.startCounter--;
-    if (this.requiresInterception) interceptions--;
+    if (this.requiresInterception && this.browser) this.browser.interceptions--;
 
-    if (interceptions === 0 && this.browser) {
+    if (this.browser && this.browser.interceptions === 0) {
       const pages = await this.browser.pages();
 
       pages.filter(x => !x.isClosed()).forEach(async (page: Puppeteer.Page) => {
@@ -233,65 +312,30 @@ export class Plugin {
   }
 }
 
-let plugins: Plugin[] = [];
-export function addPlugin(plugin: Plugin) { plugins.push(plugin); }
-export async function clearPlugins() {
-  plugins.forEach(async plugin => {
-    await plugin.stop();
-  });
+interface Pluginable {
+  plugins: Plugin[];
+  browserEvents: events.EventEmitter;
+  interceptions: number;
 
-  plugins = [];
-}
-
-import { AnonymizeUserAgentPlugin } from './plugins/anonymize.user.agent/index';
-export function anonymizeUserAgent(): AnonymizeUserAgentPlugin {
-  const plugin = new AnonymizeUserAgentPlugin();
-  plugins.push(plugin);
-  return plugin;
-}
-
-import { AvoidDetectionPlugin } from './plugins/avoid.detection';
-export function avoidDetection(): AvoidDetectionPlugin {
-  const plugin = new AvoidDetectionPlugin();
-  plugins.push(plugin);
-  return plugin;
-}
-
-import { BlockResourcesPlugin, Resource } from './plugins/block.resources';
-export function blockResources(...resources: Resource[]): BlockResourcesPlugin {
-  const plugin = new BlockResourcesPlugin(resources);
-  plugins.push(plugin);
-  return plugin;
-}
-
-import { DisableDialogsPlugin } from './plugins/disable.dialogs';
-export function disableDialogs(logMessages = false): DisableDialogsPlugin {
-  const plugin = new DisableDialogsPlugin(logMessages);
-  plugins.push(plugin);
-  return plugin;
-}
-
-import { ManageCookiesOption, ManageCookiesPlugin } from './plugins/manage.cookies';
-export function manageCookies(opts: ManageCookiesOption): ManageCookiesPlugin {
-  const plugin = new ManageCookiesPlugin(opts);
-  plugins.push(plugin);
-  return plugin;
-}
-
-import { ManageLocalStorageOption, ManageLocalStoragePlugin } from './plugins/manage.localstorage';
-export function manageLocalStorage(opts: ManageLocalStorageOption): ManageLocalStoragePlugin {
-  const plugin = new ManageLocalStoragePlugin(opts);
-  plugins.push(plugin);
-  return plugin;
-}
-
-import { SolveRecaptchaPlugin } from './plugins/solve.recaptcha';
-export function solveRecaptchas(accessToken: string): SolveRecaptchaPlugin {
-  const plugin = new SolveRecaptchaPlugin(accessToken);
-  plugins.push(plugin);
-  return plugin;
+  addPlugin: (plugin: Plugin) => Promise<void>;
+  clearPlugins: () => void;
+  anonymizeUserAgent: () => Promise<AnonymizeUserAgentPlugin>;
+  avoidDetection: () => Promise<AvoidDetectionPlugin>;
+  blockResources: (...resources: Resource[]) => Promise<BlockResourcesPlugin>;
+  disableDialogs: (logMessages?: boolean) => Promise<DisableDialogsPlugin>;
+  manageCookies: (opts: ManageCookiesOption) => Promise<ManageCookiesPlugin>;
+  manageLocalStorage: (opts: ManageLocalStorageOption) => Promise<ManageLocalStoragePlugin>;
+  solveRecaptchas: (accessToken: string) => Promise<SolveRecaptchaPlugin>;
 }
 
 interface Dialog extends Puppeteer.Dialog {
   handled: boolean;
 }
+
+import { AnonymizeUserAgentPlugin } from './plugins/anonymize.user.agent';
+import { AvoidDetectionPlugin } from './plugins/avoid.detection';
+import { BlockResourcesPlugin, Resource } from './plugins/block.resources';
+import { DisableDialogsPlugin } from './plugins/disable.dialogs';
+import { ManageCookiesOption, ManageCookiesPlugin } from './plugins/manage.cookies';
+import { ManageLocalStorageOption, ManageLocalStoragePlugin } from './plugins/manage.localstorage';
+import { SolveRecaptchaPlugin } from './plugins/solve.recaptcha';

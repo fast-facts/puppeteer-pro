@@ -3,8 +3,8 @@ import * as path from 'path';
 import * as Puppeteer from 'puppeteer';
 import { createCursor } from 'ghost-cursor';
 
-import { Plugin } from '../../index';
-import { AvoidDetectionPlugin } from './../avoid.detection/index';
+import { Plugin } from '../..';
+import { AvoidDetectionPlugin } from './../avoid.detection';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const injection = require(path.resolve(`${__dirname}/injections`) + '/utils.js');

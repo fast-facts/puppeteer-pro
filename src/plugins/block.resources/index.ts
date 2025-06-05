@@ -1,6 +1,6 @@
 import * as Puppeteer from 'puppeteer';
 
-import { Plugin } from '../../index';
+import { Plugin } from '../..';
 
 export type Resource = 'document' | 'stylesheet' | 'image' | 'media' | 'font' | 'script' | 'texttrack' | 'xhr' | 'fetch' | 'eventsource' | 'websocket' | 'manifest' | 'other';
 export class BlockResourcesPlugin extends Plugin {

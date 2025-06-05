@@ -1,14 +1,17 @@
-import * as PuppeteerPro from '../../index';
 import * as fs from 'fs';
+import { Browser, BrowserContext } from '../..';
+import { ManageCookiesOption } from '.';
+
 import type ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-type ManageCookiesPlugin = ReturnType<typeof PuppeteerPro.manageCookies>;
-
 export const manageCookiesTest = {
-  modes: (mode: string) => (plugin: ManageCookiesPlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+  modes: (mode: string, opts: ManageCookiesOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
+
+    const plugin = await browser.manageCookies(opts);
+
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
@@ -52,8 +55,11 @@ export const manageCookiesTest = {
       fs.unlinkSync('cookies.json');
     }
   },
-  profiles: (plugin: ManageCookiesPlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+  profiles: (opts: ManageCookiesOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
+
+    const plugin = await browser.manageCookies(opts);
+
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

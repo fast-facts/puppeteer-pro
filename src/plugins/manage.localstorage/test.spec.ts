@@ -1,13 +1,15 @@
-import * as PuppeteerPro from '../../index';
 import * as fs from 'fs';
+import { Browser, BrowserContext } from '../..';
+import { ManageLocalStorageOption } from '.';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-type ManageLocalStoragePlugin = ReturnType<typeof PuppeteerPro.manageLocalStorage>;
-
 export const manageLocalStorageTest = {
-  modes: (mode: string) => (plugin: ManageLocalStoragePlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+  modes: (mode: string, opts: ManageLocalStorageOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
+
+    const plugin = await browser.manageLocalStorage(opts);
+
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {
@@ -52,8 +54,11 @@ export const manageLocalStorageTest = {
       fs.unlinkSync('localStorage.json');
     }
   },
-  profiles: (plugin: ManageLocalStoragePlugin) => async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
+  profiles: (opts: ManageLocalStorageOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
+
+    const plugin = await browser.manageLocalStorage(opts);
+
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
     try {

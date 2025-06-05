@@ -1,35 +1,36 @@
-import * as PuppeteerPro from '../../index';
+import { Browser, BrowserContext } from '../..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-export function anonymizeTest(plugin: PuppeteerPro.Plugin) {
-  return async (browserWSEndpoint?: string) => {
-    const browser = browserWSEndpoint ? await PuppeteerPro.connect({ browserWSEndpoint }) : await PuppeteerPro.launch({ args: ['--no-sandbox'] });
-    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
+export async function anonymizeTest(createBrowser: () => Promise<Browser | BrowserContext>) {
+  const browser = await createBrowser();
 
-    try {
-      page = await browser.newPage();
+  const plugin = await browser.anonymizeUserAgent();
 
-      const getResult = async () => {
-        if (!page) return;
+  let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
-        await page.goto('https://postman-echo.com/headers');
-        await sleep(100);
+  try {
+    page = await browser.newPage();
 
-        const data = await page.evaluate(() => JSON.parse(document.body.innerText));
-        return data.headers['user-agent'];
-      };
+    const getResult = async () => {
+      if (!page) return;
 
-      expect(await getResult()).not.toContain('Headless');
+      await page.goto('https://postman-echo.com/headers');
+      await sleep(100);
 
-      await plugin.stop();
-      expect(await getResult()).toContain('Headless');
+      const data = await page.evaluate(() => JSON.parse(document.body.innerText));
+      return data.headers['user-agent'];
+    };
 
-      await plugin.restart();
-      expect(await getResult()).not.toContain('Headless');
-    } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
-    }
-  };
+    expect(await getResult()).not.toContain('Headless');
+
+    await plugin.stop();
+    expect(await getResult()).toContain('Headless');
+
+    await plugin.restart();
+    expect(await getResult()).not.toContain('Headless');
+  } finally {
+    if (page) await page.close();
+    if (browser) await browser.close();
+  }
 }
