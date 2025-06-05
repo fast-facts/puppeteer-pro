@@ -1,7 +1,7 @@
 // https://gist.github.com/jeroenvisser101/636030fe66ea929b63a33f5cb3a711ad
 
 import * as crypto from 'crypto';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import type { Cookie } from 'puppeteer';
 
 import { Plugin } from '../../index';
@@ -44,9 +44,10 @@ export class ManageCookiesPlugin extends Plugin {
   }
 
   protected async afterLaunch() {
-    if (fs.existsSync(this.saveLocation)) {
-      this.allCookies = this.parse(fs.readFileSync(this.saveLocation).toString() || '{}');
-    }
+    try {
+      await fs.access(this.saveLocation);
+      this.allCookies = this.parse((await fs.readFile(this.saveLocation)).toString() || '{}');
+    } catch { null; }
 
     void this.watchCookies();
   }
@@ -112,7 +113,7 @@ export class ManageCookiesPlugin extends Plugin {
     this.allCookies[this.profile] = await this.getCookies();
 
     const cookiesString = this.stringify(this.allCookies);
-    fs.writeFileSync(this.saveLocation, cookiesString);
+    await fs.writeFile(this.saveLocation, cookiesString);
   }
 
   private async loadProfileCookies() {
@@ -147,7 +148,7 @@ export class ManageCookiesPlugin extends Plugin {
     delete this.allCookies[this.profile];
 
     const cookiesString = this.stringify(this.allCookies);
-    fs.writeFileSync(this.saveLocation, cookiesString);
+    await fs.writeFile(this.saveLocation, cookiesString);
 
     if (requiresRealPage) {
       await page.goBack();

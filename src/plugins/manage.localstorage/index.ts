@@ -1,7 +1,7 @@
 // https://gist.github.com/jeroenvisser101/636030fe66ea929b63a33f5cb3a711ad
 
 import * as crypto from 'crypto';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 
 import { Plugin } from '../../index';
 
@@ -43,9 +43,10 @@ export class ManageLocalStoragePlugin extends Plugin {
   }
 
   protected async afterLaunch() {
-    if (fs.existsSync(this.saveLocation)) {
-      this.allLocalStorage = this.parse(fs.readFileSync(this.saveLocation).toString() || '{}');
-    }
+    try {
+      await fs.access(this.saveLocation);
+      this.allLocalStorage = this.parse((await fs.readFile(this.saveLocation)).toString() || '{}');
+    } catch { null; }
 
     void this.watchLocalStorage();
   }
@@ -111,7 +112,7 @@ export class ManageLocalStoragePlugin extends Plugin {
     this.allLocalStorage[this.profile] = await this.getLocalStorage();
 
     const localStorageString = this.stringify(this.allLocalStorage);
-    fs.writeFileSync(this.saveLocation, localStorageString);
+    await fs.writeFile(this.saveLocation, localStorageString);
   }
 
   private async loadProfileLocalStorage() {
@@ -122,7 +123,7 @@ export class ManageLocalStoragePlugin extends Plugin {
     delete this.allLocalStorage[this.profile];
 
     const localStorageString = this.stringify(this.allLocalStorage);
-    fs.writeFileSync(this.saveLocation, localStorageString);
+    await fs.writeFile(this.saveLocation, localStorageString);
   }
 
   private async setLocalStorage(allLocalStorage: LocalStorage) {
