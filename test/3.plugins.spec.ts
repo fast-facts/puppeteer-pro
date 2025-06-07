@@ -11,7 +11,7 @@ import { blockResourcesTest } from '../src/plugins/block.resources/test.spec';
 import { disableDialogsTest } from '../src/plugins/disable.dialogs/test.spec';
 import { manageCookiesTest } from '../src/plugins/manage.cookies/test.spec';
 import { manageLocalStorageTest } from '../src/plugins/manage.localstorage/test.spec';
-// import { solveRecaptchaTest } from '../src/plugins/solve.recaptcha/test.spec';
+// import { solveRecaptchasTest } from '../src/plugins/solve.recaptchas/test.spec';
 
 const pluginTests: PluginTests = {
   describe: 'PuppeteerPro\'s built-in plugins',
@@ -58,8 +58,8 @@ const pluginTests: PluginTests = {
     }],
     // },
     // {
-    // describe: 'can solve recaptcha',
-    // tests: [() => solveRecaptchaTest(PuppeteerPro.solveRecaptchas(process.env.WIT_AI_ACCESS_TOKEN))]
+    //   describe: 'can solve recaptcha',
+    //   tests: [solveRecaptchasTest],
   }],
 };
 

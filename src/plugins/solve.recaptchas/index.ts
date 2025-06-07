@@ -10,7 +10,7 @@ import { AvoidDetectionPlugin } from './../avoid.detection';
 const injection = require(path.resolve(`${__dirname}/injections`) + '/utils.js');
 const randomBetween = (min: number, max: number) => Math.floor(Math.random() * (max - min)) + min;
 
-export class SolveRecaptchaPlugin extends Plugin {
+export class SolveRecaptchasPlugin extends Plugin {
   dependencies = [new AvoidDetectionPlugin()];
   witAiAccessToken?: string;
 

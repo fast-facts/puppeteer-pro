@@ -108,8 +108,8 @@ function addPluginSupport(browser: Browser | BrowserContext) {
     return plugin;
   };
 
-  browser.solveRecaptchas = async (accessToken: string): Promise<SolveRecaptchaPlugin> => {
-    const plugin = new SolveRecaptchaPlugin(accessToken);
+  browser.solveRecaptchas = async (accessToken: string): Promise<SolveRecaptchasPlugin> => {
+    const plugin = new SolveRecaptchasPlugin(accessToken);
     await browser.addPlugin(plugin);
     return plugin;
   };
@@ -325,7 +325,7 @@ interface Pluginable {
   disableDialogs: (logMessages?: boolean) => Promise<DisableDialogsPlugin>;
   manageCookies: (opts: ManageCookiesOption) => Promise<ManageCookiesPlugin>;
   manageLocalStorage: (opts: ManageLocalStorageOption) => Promise<ManageLocalStoragePlugin>;
-  solveRecaptchas: (accessToken: string) => Promise<SolveRecaptchaPlugin>;
+  solveRecaptchas: (accessToken: string) => Promise<SolveRecaptchasPlugin>;
 }
 
 interface Dialog extends Puppeteer.Dialog {
@@ -338,4 +338,4 @@ import { BlockResourcesPlugin, Resource } from './plugins/block.resources';
 import { DisableDialogsPlugin } from './plugins/disable.dialogs';
 import { ManageCookiesOption, ManageCookiesPlugin } from './plugins/manage.cookies';
 import { ManageLocalStorageOption, ManageLocalStoragePlugin } from './plugins/manage.localstorage';
-import { SolveRecaptchaPlugin } from './plugins/solve.recaptcha';
+import { SolveRecaptchasPlugin } from './plugins/solve.recaptchas';
