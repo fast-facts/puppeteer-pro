@@ -28,9 +28,19 @@ const waitAndClickTest = () => async (createBrowser: () => Promise<Browser | Bro
   try {
     const page = await browser.newPage();
 
-    await page.goto('http://www.google.com');
-
     expect(page.waitAndClick).toBeDefined();
+  } finally {
+    if (browser) await browser.close();
+  }
+};
+
+const waitAndTypeTest = () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+  const browser = await createBrowser();
+
+  try {
+    const page = await browser.newPage();
+
+    expect(page.waitAndType).toBeDefined();
   } finally {
     if (browser) await browser.close();
   }
@@ -41,6 +51,9 @@ const pluginTests: PluginTests = {
   tests: [{
     describe: 'can waitAndClick',
     tests: [waitAndClickTest],
+  }, {
+    describe: 'can waitAndType',
+    tests: [waitAndTypeTest],
   }],
 };
 

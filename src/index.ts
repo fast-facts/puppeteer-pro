@@ -76,6 +76,11 @@ function newPage(oldPage: Puppeteer.Page): Page {
     await page.click(selector, options);
   };
 
+  page.waitAndType = async (selector: string, text: string, options?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void> => {
+    await page.waitForSelector(selector);
+    await page.type(selector, text, options);
+  };
+
   return page;
 }
 
@@ -152,6 +157,7 @@ export interface BrowserContext extends Puppeteer.BrowserContext, Pluginable {
 
 export interface Page extends Puppeteer.Page {
   waitAndClick(selector: string, options?: Readonly<Puppeteer.ClickOptions>): Promise<void>;
+  waitAndType(selector: string, text: string, options?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void>;
 }
 
 export class Plugin {
