@@ -35,6 +35,13 @@ async function createBrowser(puppeteerBrowser: Puppeteer.Browser): Promise<Brows
     return createBrowserContext(context);
   };
 
+  const _newPage = browser.newPage;
+  browser.newPage = async () => {
+    const page: Puppeteer.Page = await _newPage.apply(browser);
+
+    return newPage(page);
+  };
+
   addPluginSupport(browser);
 
   return browser;
@@ -49,9 +56,27 @@ async function createBrowserContext(puppeteerBrowserContext: Puppeteer.BrowserCo
     browser.browserEvents.emit('close');
   };
 
+  const _newPage = browser.newPage;
+  browser.newPage = async () => {
+    const page: Puppeteer.Page = await _newPage.apply(browser);
+
+    return newPage(page);
+  };
+
   addPluginSupport(browser);
 
   return browser;
+}
+
+function newPage(oldPage: Puppeteer.Page): Page {
+  const page = oldPage as Page;
+
+  page.waitAndClick = async (selector: string, options?: Readonly<Puppeteer.ClickOptions>): Promise<void> => {
+    await page.waitForSelector(selector);
+    await page.click(selector, options);
+  };
+
+  return page;
 }
 
 function addPluginSupport(browser: Browser | BrowserContext) {
@@ -118,9 +143,15 @@ function addPluginSupport(browser: Browser | BrowserContext) {
 // PuppeteerPro
 export interface Browser extends Puppeteer.Browser, Pluginable {
   createBrowserContext(options?: Puppeteer.BrowserContextOptions): Promise<BrowserContext>;
+  newPage(): Promise<Page>;
 }
 
 export interface BrowserContext extends Puppeteer.BrowserContext, Pluginable {
+  newPage(): Promise<Page>;
+}
+
+export interface Page extends Puppeteer.Page {
+  waitAndClick(selector: string, options?: Readonly<Puppeteer.ClickOptions>): Promise<void>;
 }
 
 export class Plugin {
@@ -173,7 +204,7 @@ export class Plugin {
     if (this.isStopped) return;
 
     if (target.type() !== 'page') return;
-    const page = await target.page() as Puppeteer.Page;
+    const page = newPage(await target.page() as Puppeteer.Page);
     if (page.isClosed()) return;
 
     const offOnClose: (() => void)[] = [];
@@ -238,7 +269,7 @@ export class Plugin {
     await this.onPageCreated(page);
   }
 
-  protected async onPageCreated(_page: Puppeteer.Page) { null; }
+  protected async onPageCreated(_page: Page) { null; }
 
   protected async onRequest(request: Puppeteer.HTTPRequest) {
     const interceptionHandled = (request as any)._interceptionHandled;

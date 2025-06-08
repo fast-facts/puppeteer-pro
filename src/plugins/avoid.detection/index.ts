@@ -1,8 +1,7 @@
 import { readdirSync } from 'fs';
 import { resolve as resolvePath } from 'path';
-import * as Puppeteer from 'puppeteer';
 
-import { Plugin } from '../..';
+import { Page, Plugin } from '../..';
 import { AnonymizeUserAgentPlugin } from './../anonymize.user.agent';
 
 const injectionsFolder = resolvePath(`${__dirname}/injections`);
@@ -12,7 +11,7 @@ const injections = readdirSync(injectionsFolder).map(fileName => require(`${inje
 export class AvoidDetectionPlugin extends Plugin {
   dependencies = [new AnonymizeUserAgentPlugin()];
 
-  protected async onPageCreated(page: Puppeteer.Page) {
+  protected async onPageCreated(page: Page) {
     for (const injection of injections) {
       if (!this.isStopped && !page.isClosed()) await page.evaluateOnNewDocument(injection);
     }

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as Puppeteer from 'puppeteer';
 import { createCursor } from 'ghost-cursor';
 
-import { Plugin } from '../..';
+import { Page, Plugin } from '../..';
 import { AvoidDetectionPlugin } from './../avoid.detection';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -19,17 +19,17 @@ export class SolveRecaptchasPlugin extends Plugin {
     this.witAiAccessToken = witAiAccessToken;
   }
 
-  async waitForCaptcha(page: Puppeteer.Page, timeout?: number) {
+  async waitForCaptcha(page: Page, timeout?: number) {
     return page.waitForFunction(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]') &&
       !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'), { timeout });
   }
 
-  async hasCaptcha(page: Puppeteer.Page) {
+  async hasCaptcha(page: Page) {
     return page.evaluate(() => !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]') &&
       !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'));
   }
 
-  async solveRecaptcha(page: Puppeteer.Page) {
+  async solveRecaptcha(page: Page) {
     if (this.isStopped) return;
     if (!this.witAiAccessToken) return;
     if (!(await this.hasCaptcha(page))) return;

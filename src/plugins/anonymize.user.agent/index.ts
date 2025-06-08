@@ -1,13 +1,12 @@
-import * as Puppeteer from 'puppeteer';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import UserAgent = require('user-agents');
 
-import { Browser, BrowserContext, Plugin } from '../..';
+import { Browser, BrowserContext, Page, Plugin } from '../..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
 interface PageUserAgent {
-  target: Puppeteer.Page;
+  target: Page;
   userAgent: string;
   newUserAgent: string;
 }
@@ -28,7 +27,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
 
   protected async afterLaunch(browser: Browser | BrowserContext) {
     const _newPage = browser.newPage;
-    browser.newPage = async (): Promise<Puppeteer.Page> => {
+    browser.newPage = async (): Promise<Page> => {
       const page = await _newPage.apply(browser);
       await sleep(100); // Sleep to allow user agent to set
       return page;
@@ -39,7 +38,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
     this.pages = [];
   }
 
-  protected async onPageCreated(page: Puppeteer.Page) {
+  protected async onPageCreated(page: Page) {
     const userAgent = await page.browser().userAgent();
     const newUserAgent = this.userAgent || userAgent.replace('HeadlessChrome/', 'Chrome/').replace(/\(([^)]+)\)/, '(Windows NT 10.0; Win64; x64)');
 
