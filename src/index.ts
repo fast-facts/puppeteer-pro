@@ -108,8 +108,8 @@ function addPluginSupport(browser: Browser | BrowserContext) {
     return plugin;
   };
 
-  browser.avoidDetection = async (): Promise<AvoidDetectionPlugin> => {
-    const plugin = new AvoidDetectionPlugin();
+  browser.avoidDetection = async (options?: FingerprintGeneratorOptions): Promise<AvoidDetectionPlugin> => {
+    const plugin = new AvoidDetectionPlugin(options);
     await browser.addPlugin(plugin);
     return plugin;
   };
