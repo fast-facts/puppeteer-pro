@@ -71,14 +71,14 @@ async function createBrowserContext(puppeteerBrowserContext: Puppeteer.BrowserCo
 function newPage(oldPage: Puppeteer.Page): Page {
   const page = oldPage as Page;
 
-  page.waitAndClick = async (selector: string, options?: Readonly<Puppeteer.ClickOptions>): Promise<void> => {
-    await page.waitForSelector(selector);
-    await page.click(selector, options);
+  page.waitAndClick = async (selector: string, waitOptions?: Puppeteer.WaitForSelectorOptions, clickOptions?: Readonly<Puppeteer.ClickOptions>): Promise<void> => {
+    await page.waitForSelector(selector, waitOptions);
+    await page.click(selector, clickOptions);
   };
 
-  page.waitAndType = async (selector: string, text: string, options?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void> => {
-    await page.waitForSelector(selector);
-    await page.type(selector, text, options);
+  page.waitAndType = async (selector: string, text: string, waitOptions?: Puppeteer.WaitForSelectorOptions, typeOptions?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void> => {
+    await page.waitForSelector(selector, waitOptions);
+    await page.type(selector, text, typeOptions);
   };
 
   return page;
@@ -156,8 +156,8 @@ export interface BrowserContext extends Puppeteer.BrowserContext, Pluginable {
 }
 
 export interface Page extends Puppeteer.Page {
-  waitAndClick(selector: string, options?: Readonly<Puppeteer.ClickOptions>): Promise<void>;
-  waitAndType(selector: string, text: string, options?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void>;
+  waitAndClick(selector: string, waitOptions?: Puppeteer.WaitForSelectorOptions, clickOptions?: Readonly<Puppeteer.ClickOptions>): Promise<void>;
+  waitAndType(selector: string, text: string, waitOptions?: Puppeteer.WaitForSelectorOptions, typeOptions?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void>;
 }
 
 export class Plugin {
