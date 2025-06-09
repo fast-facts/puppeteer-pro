@@ -357,7 +357,7 @@ interface Pluginable {
   addPlugin: (plugin: Plugin) => Promise<void>;
   clearPlugins: () => void;
   anonymizeUserAgent: () => Promise<AnonymizeUserAgentPlugin>;
-  avoidDetection: () => Promise<AvoidDetectionPlugin>;
+  avoidDetection: (options?: FingerprintGeneratorOptions) => Promise<AvoidDetectionPlugin>;
   blockResources: (...resources: Resource[]) => Promise<BlockResourcesPlugin>;
   disableDialogs: (logMessages?: boolean) => Promise<DisableDialogsPlugin>;
   manageCookies: (opts: ManageCookiesOption) => Promise<ManageCookiesPlugin>;
@@ -376,3 +376,6 @@ import { DisableDialogsPlugin } from './plugins/disable.dialogs';
 import { ManageCookiesOption, ManageCookiesPlugin } from './plugins/manage.cookies';
 import { ManageLocalStorageOption, ManageLocalStoragePlugin } from './plugins/manage.localstorage';
 import { SolveRecaptchasPlugin } from './plugins/solve.recaptchas';
+
+import type { newInjectedPage } from 'fingerprint-injector';
+type FingerprintGeneratorOptions = Parameters<typeof newInjectedPage>[1];

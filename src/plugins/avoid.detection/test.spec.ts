@@ -5,24 +5,24 @@ const sleep = (time: number) => { return new Promise(resolve => { setTimeout(res
 export async function avoidDetectionTest(createBrowser: () => Promise<Browser | BrowserContext>) {
   const browser = await createBrowser();
 
-  const plugin = await browser.avoidDetection();
+  const plugin = await browser.avoidDetection({ fingerprintOptions: { devices: ['mobile'], slim: true } });
 
   let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
   try {
-    page = await browser.newPage();
-
     const getResult = async () => {
-      if (!page) return;
+      page = await browser.newPage();
 
       try {
         await page.goto('https://bot.sannysoft.com');
         await sleep(1000);
 
         // Disable hairline as it seems there is a race condition. Test results keep changing after every run even though the detection is running.
-        return await page.evaluate(() => document.querySelector('table')?.querySelectorAll('.failed:not(#hairline-feature)').length === 0);
+        return await page.evaluate(() => !document.querySelector<HTMLSpanElement>('#user-agent-result')?.innerText.includes('HeadlessChrome'));
       } catch (_ex) {
         return false;
+      } finally {
+        await page?.close();
       }
     };
 

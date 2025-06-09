@@ -1,19 +1,29 @@
-import { readdirSync } from 'fs';
-import { resolve as resolvePath } from 'path';
+import { newInjectedPage } from 'fingerprint-injector';
 
-import { Page, Plugin } from '../..';
-import { AnonymizeUserAgentPlugin } from './../anonymize.user.agent';
+import { Browser, BrowserContext, Page, Plugin } from '../..';
 
-const injectionsFolder = resolvePath(`${__dirname}/injections`);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const injections = readdirSync(injectionsFolder).map(fileName => require(`${injectionsFolder}/${fileName}`));
+type FingerprintGeneratorOptions = Parameters<typeof newInjectedPage>[1];
 
 export class AvoidDetectionPlugin extends Plugin {
-  dependencies = [new AnonymizeUserAgentPlugin()];
+  fingerprintOptions?: FingerprintGeneratorOptions;
 
-  protected async onPageCreated(page: Page) {
-    for (const injection of injections) {
-      if (!this.isStopped && !page.isClosed()) await page.evaluateOnNewDocument(injection);
-    }
+  constructor(fingerprintOptions?: FingerprintGeneratorOptions) {
+    super();
+    this.fingerprintOptions = fingerprintOptions;
+  }
+
+  protected async afterLaunch(browser: Browser | BrowserContext) {
+    const _newPage = browser.newPage;
+    browser.newPage = async (): Promise<Page> => {
+      const page = await (() => {
+        if (this.isStopped || !this.browser) {
+          return _newPage.apply(browser);
+        } else {
+          return newInjectedPage({ newPage: _newPage } as Browser, this.fingerprintOptions);
+        }
+      })();
+
+      return page;
+    };
   }
 }
