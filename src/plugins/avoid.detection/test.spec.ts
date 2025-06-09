@@ -34,7 +34,6 @@ export async function avoidDetectionTest(createBrowser: () => Promise<Browser | 
     await plugin.restart();
     expect(await getResult()).toBe(true);
   } finally {
-    if (page) await page.close();
-    if (browser) await browser.close();
+    await browser?.close();
   }
 }

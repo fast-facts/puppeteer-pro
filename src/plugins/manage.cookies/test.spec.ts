@@ -49,8 +49,8 @@ export const manageCookiesTest = {
       await plugin.stop();
       expect(await getResult()).toBe(0);
     } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
+      await page?.close();
+      await browser?.close();
 
       fs.unlinkSync('cookies.json');
     }
@@ -87,8 +87,8 @@ export const manageCookiesTest = {
       expect(await getResult('Profile2', 'Profile1')).toBe(0);
       expect(await getResult('Profile2', 'Profile2')).toBe(1);
     } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
+      await page?.close();
+      await browser?.close();
 
       fs.unlinkSync('cookies.json');
     }

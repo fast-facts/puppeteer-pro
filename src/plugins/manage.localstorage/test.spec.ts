@@ -48,8 +48,8 @@ export const manageLocalStorageTest = {
       await plugin.stop();
       expect(await getResult()).toBe(0);
     } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
+      await page?.close();
+      await browser?.close();
 
       fs.unlinkSync('localStorage.json');
     }
@@ -88,8 +88,8 @@ export const manageLocalStorageTest = {
       expect(await getResult('Profile2', 'Profile1')).toBe(0);
       expect(await getResult('Profile2', 'Profile2')).toBe(1);
     } finally {
-      if (page) await page.close();
-      if (browser) await browser.close();
+      await page?.close();
+      await browser?.close();
 
       fs.unlinkSync('localStorage.json');
     }

@@ -36,7 +36,7 @@ export async function solveRecaptchasTest(createBrowser: () => Promise<Browser |
     await plugin.restart();
     expect(await getResult()).toBe(true);
   } finally {
-    if (page) await page.close();
-    if (browser) await browser.close();
+    await page?.close();
+    await browser?.close();
   }
 }

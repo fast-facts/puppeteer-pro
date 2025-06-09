@@ -30,7 +30,7 @@ export async function anonymizeTest(createBrowser: () => Promise<Browser | Brows
     await plugin.restart();
     expect(await getResult()).not.toContain('Headless');
   } finally {
-    if (page) await page.close();
-    if (browser) await browser.close();
+    await page?.close();
+    await browser?.close();
   }
 }
