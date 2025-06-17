@@ -48,7 +48,7 @@
     "@types/user-agents": "^1.0.4",
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
-    "eslint-config-final": "^1.6.1",
+    "eslint-config-final": "^1.6.2",
     "jest": "^30.0.0",
     "puppeteer": "^24.10.1",
     "ts-jest": "^29.4.0",
