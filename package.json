@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "axios": "^1.10.0",
-    "fingerprint-injector": "^2.1.66",
+    "fingerprint-injector": "^2.1.67",
     "ghost-cursor": "^1.4.1",
     "user-agents": "^1.1.564"
   },
