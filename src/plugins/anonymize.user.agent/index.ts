@@ -44,14 +44,14 @@ export class AnonymizeUserAgentPlugin extends Plugin {
 
     this.pages.push({ target: page, userAgent, newUserAgent });
 
-    await page.setUserAgent(newUserAgent);
+    await page.setUserAgent({ userAgent: newUserAgent });
   }
 
   protected async beforeRestart() {
     for (const page of this.pages) {
       if (page.target.isClosed()) continue;
 
-      await page.target.setUserAgent(page.newUserAgent);
+      await page.target.setUserAgent({ userAgent: page.newUserAgent });
     }
   }
 
@@ -59,7 +59,7 @@ export class AnonymizeUserAgentPlugin extends Plugin {
     for (const page of this.pages) {
       if (page.target.isClosed()) continue;
 
-      await page.target.setUserAgent(page.userAgent);
+      await page.target.setUserAgent({ userAgent: page.userAgent });
     }
   }
 }
