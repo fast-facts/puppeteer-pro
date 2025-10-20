@@ -54,10 +54,11 @@ export class SolveRecaptchasPlugin extends Plugin {
     }
 
     let numTriesLeft = 5;
-    async function isFinished() {
+    const isFinished = async () => {
+      if (!(await this.hasCaptcha(page))) return true;
       if (--numTriesLeft === 0) return true;
       return anchorFrame?.evaluate(() => !!document.querySelector('.recaptcha-checkbox-checked'));
-    }
+    };
 
     await findAndClick(anchorFrame, '#recaptcha-anchor');
 
