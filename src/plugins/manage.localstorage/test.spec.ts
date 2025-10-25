@@ -51,7 +51,9 @@ export const manageLocalStorageTest = {
       await page?.close();
       await browser?.close();
 
-      fs.unlinkSync('localStorage.json');
+      if (fs.existsSync('localStorage.json')) {
+        fs.unlinkSync('localStorage.json');
+      }
     }
   },
   profiles: (opts: ManageLocalStorageOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
@@ -91,7 +93,9 @@ export const manageLocalStorageTest = {
       await page?.close();
       await browser?.close();
 
-      fs.unlinkSync('localStorage.json');
+      if (fs.existsSync('localStorage.json')) {
+        fs.unlinkSync('localStorage.json');
+      }
     }
   },
 };

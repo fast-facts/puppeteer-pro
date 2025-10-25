@@ -52,7 +52,9 @@ export const manageCookiesTest = {
       await page?.close();
       await browser?.close();
 
-      fs.unlinkSync('cookies.json');
+      if (fs.existsSync('cookies.json')) {
+        fs.unlinkSync('cookies.json');
+      }
     }
   },
   profiles: (opts: ManageCookiesOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
@@ -90,7 +92,9 @@ export const manageCookiesTest = {
       await page?.close();
       await browser?.close();
 
-      fs.unlinkSync('cookies.json');
+      if (fs.existsSync('cookies.json')) {
+        fs.unlinkSync('cookies.json');
+      }
     }
   },
 };
