@@ -7,6 +7,13 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+  issues: write
+  pull-requests: write
+
 jobs:
   run:
     name: Publish
@@ -44,6 +51,7 @@ jobs:
               "@semantic-release/release-notes-generator",
               [
                 "@semantic-release/npm", {
+                  "npmPublish": true,
                   "pkgRoot": "dist"
                 }
               ],
@@ -51,5 +59,4 @@ jobs:
             ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
         continue-on-error: true
