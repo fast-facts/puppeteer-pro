@@ -7,6 +7,13 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+  issues: write
+  pull-requests: write
+
 jobs:
   run:
     name: Publish
@@ -44,6 +51,7 @@ jobs:
               "@semantic-release/release-notes-generator",
               [
                 "@semantic-release/npm", {
+                  "npmPublish": true,
                   "pkgRoot": "dist"
                 }
               ],
