@@ -43,21 +43,8 @@ jobs:
 
       - run: npm run build
 
-      - uses: codfish/semantic-release-action@v3
-        with:
-          plugins: |
-            [
-              "@semantic-release/commit-analyzer",
-              "@semantic-release/release-notes-generator",
-              [
-                "@semantic-release/npm", {
-                  "npmPublish": true,
-                  "pkgRoot": "dist"
-                }
-              ],
-              "@semantic-release/github"
-            ]
+      - name: Run semantic-release
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
         continue-on-error: true
