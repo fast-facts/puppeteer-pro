@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as path from 'path';
 import * as Puppeteer from 'puppeteer';
-import { createCursor } from 'ghost-cursor';
+import { GhostCursor } from 'ghost-cursor';
 
 import { Page, Plugin } from '../..';
 import { AvoidDetectionPlugin } from './../avoid.detection';
@@ -37,7 +37,7 @@ export class SolveRecaptchasPlugin extends Plugin {
     const anchorFrame = page.frames().find(x => x.url().includes('api2/anchor'));
     if (!anchorFrame) return;
 
-    const cursor = createCursor(page);
+    const cursor = new GhostCursor(page);
 
     async function waitForSelector(iframe: Puppeteer.Frame, selector: string) {
       await iframe.waitForFunction((_selector: string) => document.querySelector(_selector), {}, selector);
