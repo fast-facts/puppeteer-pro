@@ -46,6 +46,18 @@ const waitAndTypeTest = () => async (createBrowser: () => Promise<Browser | Brow
   }
 };
 
+const withLoaderTest = () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+  const browser = await createBrowser();
+
+  try {
+    const page = await browser.newPage();
+
+    expect(page.withLoader).toBeDefined();
+  } finally {
+    if (browser) await browser.close();
+  }
+};
+
 const pluginTests: PluginTests = {
   describe: 'PuppeteerPro\'s Page',
   tests: [{
@@ -54,6 +66,9 @@ const pluginTests: PluginTests = {
   }, {
     describe: 'can waitAndType',
     tests: [waitAndTypeTest],
+  }, {
+    describe: 'can withLoader',
+    tests: [withLoaderTest],
   }],
 };
 

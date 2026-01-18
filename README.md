@@ -51,6 +51,7 @@ const PuppeteerPro = require('puppeteer-pro');
   - If amongst 5 handlers, all handlers call continue, the result will be `continue`. This will occur after all handlers are finished.
 - `page.waitAndClick` function that sequentially runs `page.waitForSelector` and `page.click`.
 - `page.waitAndType` function that sequentially runs `page.waitForSelector` and `page.type`.
+- `page.withLoader` function that wraps any function with waiting for a selector to appear and then disappear.
 
 ## Optional Built-in Plugins
 
