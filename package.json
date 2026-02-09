@@ -37,7 +37,7 @@
     "node": ">=10.0.0"
   },
   "dependencies": {
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "fingerprint-injector": "^2.1.80",
     "ghost-cursor": "^1.4.2",
     "user-agents": "^1.1.564"
