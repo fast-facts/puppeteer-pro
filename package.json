@@ -50,7 +50,7 @@
     "dotenv-safe": "^9.1.0",
     "eslint-config-final": "^1.6.25",
     "jest": "^30.2.0",
-    "puppeteer": "^24.37.2",
+    "puppeteer": "^24.37.3",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
