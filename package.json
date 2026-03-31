@@ -39,7 +39,7 @@
   "dependencies": {
     "fingerprint-injector": "^2.1.81",
     "ghost-cursor": "^1.4.2",
-    "user-agents": "^1.1.564"
+    "user-agents": "^2.1.16"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
