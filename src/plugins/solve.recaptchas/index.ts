@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as path from 'path';
 import * as Puppeteer from 'puppeteer';
 import { GhostCursor } from 'ghost-cursor';
@@ -78,14 +77,22 @@ export class SolveRecaptchasPlugin extends Plugin {
 
       const audioBuffer = Buffer.from(new Int8Array(audioArray));
 
-      const response = await axios.post<any>('https://api.wit.ai/speech?v=20220527', audioBuffer, {
+      const response = await fetch('https://api.wit.ai/speech?v=20220527', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${this.witAiAccessToken}`,
           'Content-Type': 'audio/wav',
         },
+        body: audioBuffer,
       });
 
-      const data = typeof response.data === 'string' ? JSON.parse(response.data.split('\r\n').slice(-1)[0] || '{}') : response.data;
+      if (!response.ok) {
+        throw new Error(`Wit.ai API error: ${response.status} ${response.statusText}`);
+      }
+
+      const text = await response.text();
+
+      const data = JSON.parse(text.split('\r\n').filter(line => line.trim()).slice(-1)[0] || '{}');
 
       if (data?.text) {
         const responseInput = await bframeFrame.$('#audio-response');
