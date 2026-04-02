@@ -50,7 +50,7 @@
     "eslint-config-final": "^1.6.28",
     "jest": "^30.3.0",
     "puppeteer": "^24.40.0",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
