@@ -47,11 +47,11 @@
     "@types/user-agents": "^1.0.4",
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
-    "eslint-config-final": "^1.6.28",
+    "eslint-config-final": "^1.6.32",
     "jest": "^30.3.0",
     "puppeteer": "^24.42.0",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }
