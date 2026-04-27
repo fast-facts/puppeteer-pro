@@ -1,0 +1,64 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:base"
+    ],
+    "minimumReleaseAge": "14 days",
+    "schedule": [
+        "before 4am"
+    ],
+    "timezone": "America/New_York",
+    "prCreation": "immediate",
+    "labels": [
+        "dependencies"
+    ],
+    "rangeStrategy": "bump",
+    "automerge": true,
+    "automergeType": "pr",
+    "packageRules": [
+        {
+            "matchManagers": [
+                "github-actions"
+            ],
+            "matchPackageNames": [
+                "node"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "enabled": false
+        },
+        {
+            "groupName": "typescript and eslint",
+            "matchPackagePatterns": [
+                "*typescript*",
+                "*eslint*"
+            ]
+        },
+        {
+            "groupName": "jest",
+            "matchPackagePatterns": [
+                "*jest*"
+            ]
+        },
+        {
+            "groupName": "types",
+            "matchPackagePatterns": [
+                "@types/*"
+            ],
+            "excludePackagePatterns": [
+                "*jest*"
+            ]
+        },
+        {
+            "groupName": "user-agents",
+            "matchPackageNames": [
+                "user-agents"
+            ],
+            "schedule": [
+                "on the first day of the month"
+            ]
+        }
+    ]
+}
