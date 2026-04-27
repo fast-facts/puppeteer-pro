@@ -12,7 +12,7 @@ jobs:
   run:
     name: Build on PR
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
