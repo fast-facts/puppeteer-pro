@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24.15.0
+          node-version: 24
       - run: npm install
 
       - uses: DamianReeves/write-file-action@v1.3

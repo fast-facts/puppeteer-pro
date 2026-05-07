@@ -23,7 +23,7 @@
             "matchDepTypes": [
                 "uses-with"
             ],
-            "matchPackageNames": [
+            "matchDepNames": [
                 "node"
             ],
             "matchUpdateTypes": [
