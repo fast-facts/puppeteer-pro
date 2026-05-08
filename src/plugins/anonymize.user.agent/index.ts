@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import UserAgent = require('user-agents');
+import UserAgent from 'user-agents';
 
 import { Browser, BrowserContext, Page, Plugin } from '../..';
 

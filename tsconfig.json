@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist",
     "lib": [
       "ES2018",
       "dom"
     ],
+    "types": [
+      "node",
+      "jest"
+    ],
     "module": "commonjs",
     "target": "ES2018",
-    "alwaysStrict": false,
     "declaration": true,
     "declarationMap": true,
-    "downlevelIteration": true,
+    "esModuleInterop": true,
     "importHelpers": true,
     "inlineSources": true,
     "noEmitHelpers": true,
