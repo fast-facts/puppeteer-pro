@@ -1,7 +1,7 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:base"
+        "config:recommended"
     ],
     "minimumReleaseAge": "14 days",
     "schedule": [
@@ -43,24 +43,22 @@
         },
         {
             "groupName": "typescript and eslint",
-            "matchPackagePatterns": [
-                "*typescript*",
-                "*eslint*"
+            "matchPackageNames": [
+                "/*typescript*/",
+                "/*eslint*/"
             ]
         },
         {
             "groupName": "jest",
-            "matchPackagePatterns": [
-                "*jest*"
+            "matchPackageNames": [
+                "/*jest*/"
             ]
         },
         {
             "groupName": "types",
-            "matchPackagePatterns": [
-                "@types/*"
-            ],
-            "excludePackagePatterns": [
-                "*jest*"
+            "matchPackageNames": [
+                "/@types/*/",
+                "!/*jest*/"
             ]
         },
         {
