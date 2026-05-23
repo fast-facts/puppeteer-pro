@@ -48,7 +48,7 @@
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
     "eslint-config-final": "^1.7.2",
-    "jest": "^30.4.0",
+    "jest": "^30.4.2",
     "puppeteer": "^24.43.0",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
