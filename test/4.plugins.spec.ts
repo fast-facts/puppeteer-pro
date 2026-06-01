@@ -1,6 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require('dotenv-safe').config();
 
+import { vi } from 'vitest';
+
 import * as Puppeteer from 'puppeteer';
 import * as PuppeteerPro from '../src';
 import { Browser, BrowserContext } from '../src';
@@ -68,7 +70,7 @@ const runRecursiveTests = (x: PluginTests) => {
     describe(x.describe, () => {
       for (const test of x.tests) {
         if (test instanceof Function) {
-          jest.setTimeout(30 * 1000);
+          vi.setConfig({ testTimeout: 30 * 1000 });
 
           let browser: Browser | undefined;
 

@@ -1,6 +1,7 @@
 import UserAgent from 'user-agents';
 
-import { Browser, BrowserContext, Page, Plugin } from '../..';
+import type { Browser, BrowserContext, Page } from '../..';
+import { Plugin } from '..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 

@@ -2,7 +2,8 @@ import * as path from 'path';
 import * as Puppeteer from 'puppeteer';
 import { GhostCursor } from 'ghost-cursor';
 
-import { Page, Plugin } from '../..';
+import type { Page } from '../..';
+import { Plugin } from '..';
 import { AvoidDetectionPlugin } from './../avoid.detection';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

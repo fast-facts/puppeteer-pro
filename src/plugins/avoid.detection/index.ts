@@ -1,6 +1,7 @@
 import { newInjectedPage } from 'fingerprint-injector';
 
-import { Browser, BrowserContext, Page, Plugin } from '../..';
+import type { Browser, BrowserContext, Page } from '../..';
+import { Plugin } from '..';
 
 type FingerprintGeneratorOptions = Parameters<typeof newInjectedPage>[1];
 

@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import type { Cookie } from 'puppeteer';
 
-import { Plugin } from '../..';
+import { Plugin } from '..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 

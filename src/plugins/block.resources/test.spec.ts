@@ -1,5 +1,6 @@
 import { HTTPRequest } from 'puppeteer';
-import { Browser, BrowserContext, Plugin } from '../..';
+import { Browser, BrowserContext } from '../..';
+import { Plugin } from '..';
 import { Resource } from '.';
 
 class AbortPlugin extends Plugin {

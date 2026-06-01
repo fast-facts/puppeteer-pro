@@ -1,6 +1,12 @@
 {
+  "compilerOptions": {
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
+  },
   "include": [
     "./**/*.spec.ts",
-    "jest.config.ts"
+    "vitest.config.ts"
   ]
 }

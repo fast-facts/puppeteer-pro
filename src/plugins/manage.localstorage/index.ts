@@ -3,7 +3,7 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 
-import { Plugin } from '../..';
+import { Plugin } from '..';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 

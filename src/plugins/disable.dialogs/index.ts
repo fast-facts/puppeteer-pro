@@ -1,6 +1,6 @@
 import * as Puppeteer from 'puppeteer';
 
-import { Plugin } from '../..';
+import { Plugin } from '..';
 
 export class DisableDialogsPlugin extends Plugin {
   logMessages: boolean;

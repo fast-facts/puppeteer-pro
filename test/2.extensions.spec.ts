@@ -1,10 +1,11 @@
 import * as Puppeteer from 'puppeteer';
 import * as PuppeteerPro from '../src';
 import { Browser, BrowserContext } from '../src';
+import { Plugin } from '../src/plugins';
 
 const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
 
-class TestPlugin extends PuppeteerPro.Plugin {
+class TestPlugin extends Plugin {
   _state = false;
 
   async afterLaunch(browser: Puppeteer.Browser | Puppeteer.BrowserContext) {

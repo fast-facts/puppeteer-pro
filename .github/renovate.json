@@ -49,18 +49,15 @@
             ]
         },
         {
-            "groupName": "jest",
+            "groupName": "vitest",
             "matchPackagePatterns": [
-                "*jest*"
+                "*vitest*"
             ]
         },
         {
             "groupName": "types",
             "matchPackagePatterns": [
                 "@types/*"
-            ],
-            "excludePackagePatterns": [
-                "*jest*"
             ]
         },
         {

@@ -7,12 +7,12 @@
     "clean": "rm -rf dist",
     "lint": "eslint --fix",
     "prebuild": "npm run clean",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.app.json",
     "postbuild": "npm run copy:injections && npm run copy:files",
     "copy:injections": "copyfiles -u 1 src/plugins/*/injections/* dist",
     "copy:files": "copyfiles package.json README.md LICENSE dist",
-    "test": "jest",
-    "test-watch": "jest --watch"
+    "test": "vitest run",
+    "test-watch": "vitest --watch"
   },
   "repository": {
     "type": "git",
@@ -42,16 +42,14 @@
     "user-agents": "^2.1.16"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
     "@types/node": "^25.7.0",
     "@types/user-agents": "^1.0.4",
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
     "eslint-config-final": "^1.7.7",
-    "jest": "^30.4.2",
     "puppeteer": "^25.1.0",
-    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   }
 }
