@@ -27,6 +27,9 @@
     "strictBindCallApply": false
   },
   "include": [
-    "./src/*.ts"
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "./**/*.spec.ts"
   ]
 }

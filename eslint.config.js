@@ -1,7 +1,7 @@
-const tseslint = require('typescript-eslint');
-const config = require('eslint-config-final');
+import tseslint from 'typescript-eslint';
+import config from 'eslint-config-final';
 
-module.exports = tseslint.config(
+export default tseslint.config(
   {
     ignores: [
       '**/node_modules/',
@@ -21,11 +21,9 @@ module.exports = tseslint.config(
       sourceType: 'script',
 
       parserOptions: {
-        project: [
-          'tsconfig.json',
-          'tsconfig.spec.json',
-        ],
-      }
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   }
 );
