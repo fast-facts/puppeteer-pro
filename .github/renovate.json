@@ -43,20 +43,20 @@
         },
         {
             "groupName": "typescript and eslint",
-            "matchPackagePatterns": [
+            "matchPackageNames": [
                 "*typescript*",
                 "*eslint*"
             ]
         },
         {
             "groupName": "vitest",
-            "matchPackagePatterns": [
+            "matchPackageNames": [
                 "*vitest*"
             ]
         },
         {
             "groupName": "types",
-            "matchPackagePatterns": [
+            "matchPackageNames": [
                 "@types/*"
             ]
         },
