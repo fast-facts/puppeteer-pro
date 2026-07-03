@@ -48,7 +48,6 @@
     "dotenv-safe": "^9.1.0",
     "eslint-config-final": "^1.7.17",
     "puppeteer": "^25.1.0",
-    "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   }
