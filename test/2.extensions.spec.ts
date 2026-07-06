@@ -1,4 +1,6 @@
+import path from 'path';
 import * as Puppeteer from 'puppeteer';
+
 import * as PuppeteerPro from '../src';
 import { Browser, BrowserContext } from '../src';
 import { Plugin } from '../src/plugins';
@@ -54,6 +56,17 @@ const withLoaderTest = () => async (createBrowser: () => Promise<Browser | Brows
     const page = await browser.newPage();
 
     expect(page.withLoader).toBeDefined();
+
+    const filePath = path.resolve('./test/html/withLoader.html');
+    await page.goto(`file://${filePath}`);
+
+    await page.withLoader(
+      () => page.click('#load-btn'),
+      '#loader'
+    );
+
+    expect(await page.$('#result').then(x => x?.isVisible())).toBe(true);
+    expect(await page.$('#loader').then(x => x?.isVisible())).toBe(false);
   } finally {
     if (browser) await browser.close();
   }

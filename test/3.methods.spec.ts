@@ -1,4 +1,5 @@
 import * as Puppeteer from 'puppeteer';
+
 import * as PuppeteerPro from '../src';
 import { Browser, BrowserContext } from '../src';
 import { Plugin } from '../src/plugins';

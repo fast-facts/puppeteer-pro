@@ -1,8 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require('dotenv-safe').config();
 
-import { vi } from 'vitest';
-
 import * as Puppeteer from 'puppeteer';
 import * as PuppeteerPro from '../src';
 import { Browser, BrowserContext } from '../src';
@@ -70,8 +68,6 @@ const runRecursiveTests = (x: PluginTests) => {
     describe(x.describe, () => {
       for (const test of x.tests) {
         if (test instanceof Function) {
-          vi.setConfig({ testTimeout: 30 * 1000 });
-
           let browser: Browser | undefined;
 
           afterEach(async () => {
@@ -79,11 +75,11 @@ const runRecursiveTests = (x: PluginTests) => {
             browser = undefined;
           });
 
-          it('on browser launch', async () => {
+          it('on browser launch', { timeout: 30_000 }, async () => {
             await test(() => PuppeteerPro.launch({ args: ['--no-sandbox'] }));
           });
 
-          it('on browser connect', async () => {
+          it('on browser connect', { timeout: 30_000 }, async () => {
             const browser = await Puppeteer.launch({ args: ['--no-sandbox'] });
             const browserWSEndpoint = browser.wsEndpoint();
             await browser.disconnect();
@@ -91,7 +87,7 @@ const runRecursiveTests = (x: PluginTests) => {
             await test(() => PuppeteerPro.connect({ browserWSEndpoint }));
           });
 
-          it('on browser context', async () => {
+          it('on browser context', { timeout: 30_000 }, async () => {
             browser = await PuppeteerPro.launch({ args: ['--no-sandbox'] });
 
             await test(() => browser!.createBrowserContext());

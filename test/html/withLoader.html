@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>withLoader Test</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 40px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    .loader {
+      display: none;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid #e5e7eb;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #result {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="load-btn">Load Data</button>
+
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <div id="result">Done</div>
+
+  <script>
+    const btn = document.getElementById('load-btn');
+    const loader = document.getElementById('loader');
+    const result = document.getElementById('result');
+
+    btn.addEventListener('click', async () => {
+      loader.style.display = 'block';
+      result.style.display = 'none';
+      btn.disabled = true;
+
+      // Simulate loading (100ms)
+      await new Promise(r => setTimeout(r, 100));
+
+      loader.style.display = 'none';
+      result.style.display = 'block';
+      btn.disabled = false;
+    });
+  </script>
+</body>
+
+</html>

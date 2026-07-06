@@ -4,6 +4,7 @@ import * as events from 'events';
 import * as Puppeteer from 'puppeteer';
 
 import type { Plugin } from './plugins';
+import { newPage } from './plugins/shared';
 
 export async function connect(options?: Puppeteer.ConnectOptions): Promise<Browser> {
   const browser = await Puppeteer.connect(options || {});
@@ -67,33 +68,6 @@ async function createBrowserContext(puppeteerBrowserContext: Puppeteer.BrowserCo
   addPluginSupport(browser);
 
   return browser;
-}
-
-function newPage(oldPage: Puppeteer.Page): Page {
-  const page = oldPage as Page;
-
-  page.waitAndClick = async (selector: string, waitOptions?: Puppeteer.WaitForSelectorOptions, clickOptions?: Readonly<Puppeteer.ClickOptions>): Promise<void> => {
-    await page.waitForSelector(selector, waitOptions);
-    await page.click(selector, clickOptions);
-  };
-
-  page.waitAndType = async (selector: string, text: string, waitOptions?: Puppeteer.WaitForSelectorOptions, typeOptions?: Readonly<Puppeteer.KeyboardTypeOptions>): Promise<void> => {
-    await page.waitForSelector(selector, waitOptions);
-    await page.type(selector, text, typeOptions);
-  };
-
-  page.withLoader = async<T>(fn: () => Promise<T>, loadingSelector: string, visibleWaitOptions?: Puppeteer.WaitForSelectorOptions, hiddenWaitOptions?: Puppeteer.WaitForSelectorOptions): Promise<T> => {
-    const loadingVisible = page.waitForSelector(loadingSelector, visibleWaitOptions);
-
-    const ret = await fn();
-
-    await loadingVisible;
-    await page.waitForSelector(loadingSelector, hiddenWaitOptions || { hidden: true });
-
-    return ret;
-  };
-
-  return page;
 }
 
 function addPluginSupport(browser: Browser | BrowserContext) {
