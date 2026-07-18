@@ -19,12 +19,12 @@ export async function solveRecaptchasTest(createBrowser: () => Promise<Browser |
 
       await page.waitForFunction(() => {
         const iframe = document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]');
-        return iframe && iframe.contentDocument && iframe.contentDocument.querySelector('#recaptcha-anchor');
+        return iframe?.contentDocument?.querySelector('#recaptcha-anchor');
       });
 
       return page.evaluate(() => {
         const iframe = document.querySelector<HTMLIFrameElement>('iframe[src*="api2/anchor"]');
-        return iframe && iframe.contentDocument && iframe.contentDocument.querySelector('.recaptcha-checkbox-checked');
+        return iframe?.contentDocument?.querySelector('.recaptcha-checkbox-checked');
       });
     };
 
