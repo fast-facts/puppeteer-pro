@@ -44,7 +44,7 @@ export class Plugin {
 
     this.initialized = true;
 
-    this.dependencies.forEach(x => x.init(browser));
+    await Promise.all(this.dependencies.map(x => x.init(browser)));
 
     return this.afterLaunch(browser);
   }
@@ -155,7 +155,7 @@ export class Plugin {
     this.startCounter++;
     if (this.requiresInterception && this.browser) this.browser.interceptions++;
 
-    this.dependencies.forEach(x => x.restart());
+    await Promise.all(this.dependencies.map(x => x.restart()));
 
     await this.afterRestart();
   }
@@ -164,6 +164,8 @@ export class Plugin {
 
   protected async beforeStop() { null; }
   async stop() {
+    if (this.isStopped) return;
+
     await this.beforeStop();
 
     this.startCounter--;
@@ -177,7 +179,7 @@ export class Plugin {
       });
     }
 
-    this.dependencies.forEach(x => x.stop());
+    await Promise.all(this.dependencies.map(x => x.stop()));
 
     await this.afterStop();
   }

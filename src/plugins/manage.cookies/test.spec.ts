@@ -1,16 +1,43 @@
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import type { Cookie } from 'puppeteer';
+
 import { Browser, BrowserContext } from '../..';
 import { ManageCookiesOption } from '.';
 
-import type ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
+const sleep = (time: number) => new Promise(resolve => setTimeout(resolve, time));
 
-const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
+function tmpFile() {
+  return path.join(os.tmpdir(), `cookies-${Date.now()}-${Math.random().toString(36).slice(2)}.json`);
+}
+
+function readCookies(file: string, profile = 'default'): Cookie[] {
+  if (!fs.existsSync(file)) return [];
+  try {
+    const data = JSON.parse(fs.readFileSync(file).toString() || '{}');
+    return data[profile] || [];
+  } catch { return []; }
+}
+
+async function waitForCookies(file: string, profile: string, prefix: string, minCount: number, timeout = 4000): Promise<number> {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const cookies = readCookies(file, profile);
+    if (cookies.filter(x => x.name.startsWith(prefix)).length >= minCount) {
+      return minCount;
+    }
+    await sleep(100);
+  }
+  return readCookies(file, profile).filter(x => x.name.startsWith(prefix)).length;
+}
 
 export const manageCookiesTest = {
   modes: (mode: string, opts: ManageCookiesOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
     const browser = await createBrowser();
-
-    const plugin = await browser.manageCookies(opts);
+    const file = tmpFile();
+    const pluginOpts = { ...opts, saveLocation: file };
+    const plugin = await browser.manageCookies(pluginOpts);
 
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
@@ -18,49 +45,62 @@ export const manageCookiesTest = {
       page = await browser.newPage();
       await page.goto('http://www.google.com');
 
-      const getResult = async () => {
-        if (!page) return;
-
-        await page.evaluate(() => document.cookie = `TestCookie.${Math.random()}=${Math.random()}`);
-
+      const setAndCount = async (name: string) => {
+        if (!page) throw new Error('page not initialized');
+        await page.evaluate((n: string) => document.cookie = `${n}=${Math.random()}`, name);
         if (mode === 'manual') {
           await plugin.save();
-        } else if (mode === 'monitor') {
-          await sleep(500);
+          return readCookies(file).filter(x => x.name.startsWith('TestCookie.')).length;
         }
-
-        if (fs.existsSync('cookies.json')) {
-          const cookies: Cookie[] = JSON.parse(fs.readFileSync('cookies.json').toString() || '{}')['default'] || [];
-          return cookies.filter(x => x.name.startsWith('TestCookie.')).length;
-        } else {
-          return 0;
-        }
+        return waitForCookies(file, 'default', 'TestCookie.', name === 'TestCookie.1' ? 1 : 2);
       };
 
-      expect(await getResult()).toBe(1);
+      expect(await setAndCount('TestCookie.1')).toBe(1);
 
       await plugin.stop();
-      expect(await getResult()).toBe(1);
+      expect(readCookies(file).filter(x => x.name.startsWith('TestCookie.')).length).toBe(1);
 
       await plugin.restart();
-      expect(await getResult()).toBe(3);
+      expect(await setAndCount('TestCookie.2')).toBe(2);
 
       await plugin.clear();
       await plugin.stop();
-      expect(await getResult()).toBe(0);
+      expect(readCookies(file).filter(x => x.name.startsWith('TestCookie.')).length).toBe(0);
     } finally {
       await page?.close();
       await browser?.close();
+      if (fs.existsSync(file)) fs.unlinkSync(file);
+    }
+  },
+  clearWithoutPages: () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
+    const file = tmpFile();
+    const plugin = await browser.manageCookies({ saveLocation: file, mode: 'manual', disableWarning: true });
 
-      if (fs.existsSync('cookies.json')) {
-        fs.unlinkSync('cookies.json');
-      }
+    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
+
+    try {
+      page = await browser.newPage();
+      await page.goto('http://www.google.com');
+      await page.evaluate(() => document.cookie = 'TestCookie.x=1');
+      await plugin.save();
+      await page.close();
+      page = undefined;
+
+      expect(readCookies(file).length).toBeGreaterThanOrEqual(1);
+      await plugin.clear();
+      expect(readCookies(file).length).toBe(0);
+    } finally {
+      await page?.close();
+      await browser?.close();
+      if (fs.existsSync(file)) fs.unlinkSync(file);
     }
   },
   profiles: (opts: ManageCookiesOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
     const browser = await createBrowser();
-
-    const plugin = await browser.manageCookies(opts);
+    const file = tmpFile();
+    const pluginOpts = { ...opts, saveLocation: file };
+    const plugin = await browser.manageCookies(pluginOpts);
 
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
 
@@ -70,33 +110,18 @@ export const manageCookiesTest = {
 
       for (const profile of ['Profile1', 'Profile2']) {
         await plugin.switchToProfile(profile);
-        await page.evaluate(profile => document.cookie = `${profile}=${Math.random()}`, profile);
+        await page.evaluate((p: string) => document.cookie = `${p}=${Math.random()}`, profile);
         await plugin.save();
       }
 
-      const getResult = (profile: string, startsWith: string) => {
-        if (fs.existsSync('cookies.json')) {
-          const cookies: Cookie[] = JSON.parse(fs.readFileSync('cookies.json').toString() || '{}')[profile];
-          return cookies.filter(x => x.name.startsWith(startsWith)).length;
-        } else {
-          return 0;
-        }
-      };
-
-      expect(await getResult('Profile1', 'Profile1')).toBe(1);
-      expect(await getResult('Profile1', 'Profile2')).toBe(0);
-
-      expect(await getResult('Profile2', 'Profile1')).toBe(0);
-      expect(await getResult('Profile2', 'Profile2')).toBe(1);
+      expect(readCookies(file, 'Profile1').filter(x => x.name.startsWith('Profile1')).length).toBe(1);
+      expect(readCookies(file, 'Profile2').filter(x => x.name.startsWith('Profile1')).length).toBe(0);
+      expect(readCookies(file, 'Profile1').filter(x => x.name.startsWith('Profile2')).length).toBe(0);
+      expect(readCookies(file, 'Profile2').filter(x => x.name.startsWith('Profile2')).length).toBe(1);
     } finally {
       await page?.close();
       await browser?.close();
-
-      if (fs.existsSync('cookies.json')) {
-        fs.unlinkSync('cookies.json');
-      }
+      if (fs.existsSync(file)) fs.unlinkSync(file);
     }
   },
 };
-
-type Cookie = ProtocolMapping.Commands['Network.getAllCookies']['returnType']['cookies'][number];

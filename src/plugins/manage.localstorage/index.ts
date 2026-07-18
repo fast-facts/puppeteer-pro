@@ -136,11 +136,9 @@ export class ManageLocalStoragePlugin extends Plugin {
       const origin = await page.evaluate(() => window.origin);
 
       await page.evaluate(originLocalStorage => {
-        const keys = Object.keys(originLocalStorage);
         localStorage.clear();
-
-        for (let i = 0; i < Object.keys(localStorage).length; i++) {
-          localStorage.setItem(keys[i], originLocalStorage[keys[i]]);
+        for (const key of Object.keys(originLocalStorage)) {
+          localStorage.setItem(key, originLocalStorage[key]);
         }
       }, allLocalStorage[origin] || {});
     }

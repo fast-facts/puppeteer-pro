@@ -80,11 +80,8 @@ function addPluginSupport(browser: Browser | BrowserContext) {
     await plugin.init(browser);
   };
 
-  browser.clearPlugins = () => {
-    browser.plugins.forEach(async plugin => {
-      await plugin.stop();
-    });
-
+  browser.clearPlugins = async () => {
+    await Promise.all(browser.plugins.map(p => p.stop()));
     browser.plugins = [];
   };
 
@@ -152,7 +149,7 @@ interface Pluginable {
   interceptions: number;
 
   addPlugin: (plugin: Plugin) => Promise<void>;
-  clearPlugins: () => void;
+  clearPlugins: () => Promise<void>;
   anonymizeUserAgent: () => Promise<AnonymizeUserAgentPlugin>;
   avoidDetection: (options?: FingerprintGeneratorOptions) => Promise<AvoidDetectionPlugin>;
   blockResources: (...resources: Resource[]) => Promise<BlockResourcesPlugin>;

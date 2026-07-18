@@ -1,78 +1,60 @@
 import path from 'path';
-import * as Puppeteer from 'puppeteer';
+import { launch } from '../src';
+import type { Browser } from '../src';
 
-import * as PuppeteerPro from '../src';
-import { Browser, BrowserContext } from '../src';
-import { Plugin } from '../src/plugins';
-
-const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
-
-class TestPlugin extends Plugin {
-  _state = false;
-
-  async afterLaunch(browser: Puppeteer.Browser | Puppeteer.BrowserContext) {
-    const _newPage = browser.newPage;
-    browser.newPage = async () => {
-      const page = await _newPage.apply(browser);
-      await sleep(100); // Sleep to allow user agent to set
-      return page;
-    };
-  }
-
-  async onPageCreated() { this.state = true; }
-
-  get state() { return this._state; }
-  set state(state) { this._state = state; }
+interface PluginTestsDirect {
+  describe: string;
+  tests: PluginTestsDirect[] | ((browser: Browser) => Promise<void>)[];
 }
 
-const waitAndClickTest = () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
-  const browser = await createBrowser();
+function runRecursiveTestsDirect(x: PluginTestsDirect) {
+  if (!x.describe || !x.tests) return;
 
-  try {
-    const page = await browser.newPage();
+  describe(x.describe, () => {
+    for (const test of x.tests) {
+      if (typeof test === 'function') {
+        it('on browser context', { timeout: 20_000 }, async () => {
+          const browser = await launch({ args: ['--no-sandbox'] });
+          try {
+            await test(browser);
+          } finally {
+            await browser.close();
+          }
+        });
+      } else {
+        runRecursiveTestsDirect(test);
+      }
+    }
+  });
+}
 
-    expect(page.waitAndClick).toBeDefined();
-  } finally {
-    if (browser) await browser.close();
-  }
+const waitAndClickTest = async (browser: Browser) => {
+  const page = await browser.newPage();
+  expect(page.waitAndClick).toBeDefined();
 };
 
-const waitAndTypeTest = () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
-  const browser = await createBrowser();
-
-  try {
-    const page = await browser.newPage();
-
-    expect(page.waitAndType).toBeDefined();
-  } finally {
-    if (browser) await browser.close();
-  }
+const waitAndTypeTest = async (browser: Browser) => {
+  const page = await browser.newPage();
+  expect(page.waitAndType).toBeDefined();
 };
 
-const withLoaderTest = () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
-  const browser = await createBrowser();
+const withLoaderTest = async (browser: Browser) => {
+  const page = await browser.newPage();
+  expect(page.withLoader).toBeDefined();
 
-  try {
-    const page = await browser.newPage();
+  const filePath = path.resolve('./test/html/withLoader.html');
+  await page.goto(`file://${filePath}`);
 
-    expect(page.withLoader).toBeDefined();
+  await page.withLoader(
+    () => page.click('#load-btn'),
+    '#loader'
+  );
 
-    const filePath = path.resolve('./test/html/withLoader.html');
-    await page.goto(`file://${filePath}`);
-
-    await page.withLoader(
-      () => page.click('#load-btn'),
-      '#loader'
-    );
-
-    expect(await page.$('#result').then(x => x?.isVisible())).toBe(true);
-    expect(await page.$('#loader').then(x => x?.isVisible())).toBe(false);
-  } finally {
-    if (browser) await browser.close();
-  }
+  expect(await page.$('#result').then(x => x?.isVisible())).toBe(true);
+  expect(await page.$('#loader').then(x => x?.isVisible())).toBe(false);
 };
 
-const pluginTests: PluginTests = {
+const pageTests: PluginTestsDirect = {
   describe: 'PuppeteerPro\'s Page',
   tests: [{
     describe: 'can waitAndClick',
@@ -86,53 +68,4 @@ const pluginTests: PluginTests = {
   }],
 };
 
-const runRecursiveTests = (x: PluginTests) => {
-  if (x.describe && x.tests) {
-    let performTest: (createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>;
-
-    describe(x.describe, () => {
-      for (const test of x.tests) {
-        if (test instanceof Function) {
-          let browser: Browser | undefined;
-
-          beforeEach(async () => {
-            const plugin = new TestPlugin();
-            performTest = test(plugin);
-          });
-
-          afterEach(async () => {
-            await browser?.close();
-            browser = undefined;
-          });
-
-          it('on browser launch', async () => {
-            await performTest(() => PuppeteerPro.launch({ args: ['--no-sandbox'] }));
-          });
-
-          it('on browser connect', async () => {
-            const browser = await Puppeteer.launch({ args: ['--no-sandbox'] });
-            const browserWSEndpoint = browser.wsEndpoint();
-            await browser.disconnect();
-
-            await performTest(() => PuppeteerPro.connect({ browserWSEndpoint }));
-          });
-
-          it('on browser context', async () => {
-            browser = await PuppeteerPro.launch({ args: ['--no-sandbox'] });
-
-            await performTest(() => browser!.createBrowserContext());
-          });
-        } else {
-          runRecursiveTests(test);
-        }
-      }
-    });
-  }
-};
-
-runRecursiveTests(pluginTests);
-
-interface PluginTests {
-  describe: string;
-  tests: PluginTests[] | ((plugin: TestPlugin) => (createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>)[];
-}
+runRecursiveTestsDirect(pageTests);

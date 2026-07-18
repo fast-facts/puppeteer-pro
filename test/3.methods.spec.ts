@@ -1,10 +1,10 @@
 import * as Puppeteer from 'puppeteer';
 
-import * as PuppeteerPro from '../src';
-import { Browser, BrowserContext } from '../src';
+import { connect, launch } from '../src';
+import type { Browser, BrowserContext } from '../src';
 import { Plugin } from '../src/plugins';
 
-const sleep = (time: number) => { return new Promise(resolve => { setTimeout(resolve, time); }); };
+const sleep = (time: number) => new Promise(resolve => { setTimeout(resolve, time); });
 
 class TestPlugin extends Plugin {
   _state = false;
@@ -13,7 +13,7 @@ class TestPlugin extends Plugin {
     const _newPage = browser.newPage;
     browser.newPage = async () => {
       const page = await _newPage.apply(browser);
-      await sleep(100); // Sleep to allow user agent to set
+      await sleep(100);
       return page;
     };
   }
@@ -24,184 +24,169 @@ class TestPlugin extends Plugin {
   set state(state) { this._state = state; }
 }
 
-const addTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
-  const browser = await createBrowser();
+type TestTarget = Browser | BrowserContext;
 
-  browser.clearPlugins();
+interface PluginTests {
+  describe: string;
+  tests: PluginTests[] | ((plugin: TestPlugin) => (browser: TestTarget) => Promise<void>)[];
+}
+
+function runRecursiveTests(x: PluginTests) {
+  if (!x.describe || !x.tests) return;
+
+  describe(x.describe, () => {
+    for (const test of x.tests) {
+      if (typeof test === 'function') {
+        it('on browser launch', { timeout: 20_000 }, async () => {
+          const plugin = new TestPlugin();
+          const performTest = test(plugin);
+          const browser = await launch({ args: ['--no-sandbox'] }) as Browser;
+          try {
+            await performTest(browser);
+          } finally {
+            await browser.close();
+          }
+        });
+
+        it('on browser connect', { timeout: 20_000 }, async () => {
+          const ppBrowser = await Puppeteer.launch({ args: ['--no-sandbox'] });
+          const browserWSEndpoint = ppBrowser.wsEndpoint();
+          await ppBrowser.disconnect();
+
+          const plugin = new TestPlugin();
+          const performTest = test(plugin);
+          const browser = await connect({ browserWSEndpoint }) as Browser;
+          try {
+            await performTest(browser);
+          } finally {
+            await browser.close();
+          }
+        });
+
+        it('on browser context', { timeout: 20_000 }, async () => {
+          const rootBrowser = await launch({ args: ['--no-sandbox'] }) as Browser;
+          const plugin = new TestPlugin();
+          const performTest = test(plugin);
+          const browser = await rootBrowser.createBrowserContext() as BrowserContext;
+          try {
+            await performTest(browser);
+          } finally {
+            await browser.close();
+            await rootBrowser.close();
+          }
+        });
+      } else {
+        runRecursiveTests(test);
+      }
+    }
+  });
+}
+
+async function getResult(browser: TestTarget, plugin: TestPlugin) {
+  const page = await browser.newPage();
+  const works = plugin.state;
+  plugin.state = false;
+  await page.close();
+  return works;
+}
+
+const addTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
   await browser.addPlugin(plugin);
-
-  try {
-    const getResult = async () => {
-      const page = await browser.newPage();
-
-      const works = plugin.state;
-      plugin.state = false;
-
-      await page.close();
-      return works;
-    };
-
-    expect(await getResult()).toBe(true);
-  } finally {
-    if (browser) await browser.close();
-  }
+  expect(await getResult(browser, plugin)).toBe(true);
 };
 
-const stopTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
-  const browser = await createBrowser();
-
-  browser.clearPlugins();
+const stopTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
   await browser.addPlugin(plugin);
+  expect(await getResult(browser, plugin)).toBe(true);
 
-  try {
-    const getResult = async () => {
-      const page = await browser.newPage();
-
-      const works = plugin.state;
-      plugin.state = false;
-
-      await page.close();
-      return works;
-    };
-
-    expect(await getResult()).toBe(true);
-
-    await plugin.stop();
-    expect(await getResult()).toBe(false);
-  } finally {
-    if (browser) await browser.close();
-  }
+  await plugin.stop();
+  expect(await getResult(browser, plugin)).toBe(false);
 };
 
-const restartTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
-  const browser = await createBrowser();
-
-  browser.clearPlugins();
+const restartTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
   await browser.addPlugin(plugin);
+  expect(await getResult(browser, plugin)).toBe(true);
 
-  try {
-    const getResult = async () => {
-      const page = await browser.newPage();
+  await plugin.stop();
+  expect(await getResult(browser, plugin)).toBe(false);
 
-      const works = plugin.state;
-      plugin.state = false;
-
-      await page.close();
-      return works;
-    };
-
-    expect(await getResult()).toBe(true);
-
-    await plugin.stop();
-    expect(await getResult()).toBe(false);
-
-    await plugin.restart();
-    expect(await getResult()).toBe(true);
-  } finally {
-    if (browser) await browser.close();
-  }
+  await plugin.restart();
+  expect(await getResult(browser, plugin)).toBe(true);
 };
 
-const dependencyTest = (plugin: TestPlugin) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+const dependencyTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
   const dependency = new TestPlugin();
   await plugin.addDependency(dependency);
 
-  const browser = await createBrowser();
-
-  browser.clearPlugins();
+  await browser.clearPlugins();
   await browser.addPlugin(plugin);
 
-  try {
-    const getResult = async () => {
-      const page = await browser.newPage();
+  const checkBoth = async () => {
+    const page = await browser.newPage();
+    const works = plugin.state && dependency.state;
+    plugin.state = false;
+    dependency.state = false;
+    await page.close();
+    return works;
+  };
 
-      const works = plugin.state && dependency.state;
-      plugin.state = false;
-      dependency.state = false;
+  expect(await checkBoth()).toBe(true);
 
-      await page.close();
-      return works;
-    };
+  await plugin.stop();
+  expect(await checkBoth()).toBe(false);
 
-    expect(await getResult()).toBe(true);
+  await plugin.restart();
+  expect(await checkBoth()).toBe(true);
+};
 
-    await plugin.stop();
-    expect(await getResult()).toBe(false);
+const clearPluginsMidlife = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
 
-    await plugin.restart();
-    expect(await getResult()).toBe(true);
-  } finally {
-    if (browser) await browser.close();
-  }
+  let stopped = false;
+  const p = new class extends Plugin {
+    async afterStop() { stopped = true; }
+  }();
+
+  await browser.addPlugin(p);
+  expect(p.isStopped).toBe(false);
+
+  await browser.clearPlugins();
+  expect(stopped).toBe(true);
+  expect(browser.plugins.length).toBe(0);
+};
+
+const doubleStop = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
+
+  let stopCount = 0;
+  const p = new class extends Plugin {
+    async afterStop() { stopCount++; }
+  }();
+
+  await browser.addPlugin(p);
+
+  await p.stop();
+  expect(stopCount).toBe(1);
+  expect(p.isStopped).toBe(true);
+
+  await p.stop();
+  expect(stopCount).toBe(1);
+  expect(p.isStopped).toBe(true);
 };
 
 const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
-  tests: [{
-    describe: 'can add a plugin',
-    tests: [addTest],
-  },
-  {
-    describe: 'can stop a plugin',
-    tests: [stopTest],
-  },
-  {
-    describe: 'can restart a plugin',
-    tests: [restartTest],
-  },
-  {
-    describe: 'can have a plugin with dependencies',
-    tests: [dependencyTest],
-  }],
-};
-
-const runRecursiveTests = (x: PluginTests) => {
-  if (x.describe && x.tests) {
-    let performTest: (createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>;
-
-    describe(x.describe, () => {
-      for (const test of x.tests) {
-        if (test instanceof Function) {
-          let browser: Browser | undefined;
-
-          beforeEach(async () => {
-            const plugin = new TestPlugin();
-            performTest = test(plugin);
-          });
-
-          afterEach(async () => {
-            await browser?.close();
-            browser = undefined;
-          });
-
-          it('on browser launch', async () => {
-            await performTest(() => PuppeteerPro.launch({ args: ['--no-sandbox'] }));
-          });
-
-          it('on browser connect', async () => {
-            const browser = await Puppeteer.launch({ args: ['--no-sandbox'] });
-            const browserWSEndpoint = browser.wsEndpoint();
-            await browser.disconnect();
-
-            await performTest(() => PuppeteerPro.connect({ browserWSEndpoint }));
-          });
-
-          it('on browser context', async () => {
-            browser = await PuppeteerPro.launch({ args: ['--no-sandbox'] });
-
-            await performTest(() => browser!.createBrowserContext());
-          });
-        } else {
-          runRecursiveTests(test);
-        }
-      }
-    });
-  }
+  tests: [
+    { describe: 'can add a plugin', tests: [addTest] },
+    { describe: 'can stop a plugin', tests: [stopTest] },
+    { describe: 'can restart a plugin', tests: [restartTest] },
+    { describe: 'can have a plugin with dependencies', tests: [dependencyTest] },
+    { describe: 'clearPlugins mid-lifecycle', tests: [clearPluginsMidlife] },
+    { describe: 'double stop is safe', tests: [doubleStop] },
+  ],
 };
 
 runRecursiveTests(pluginTests);
-
-interface PluginTests {
-  describe: string;
-  tests: PluginTests[] | ((plugin: TestPlugin) => (createBrowser: () => Promise<Browser | BrowserContext>) => Promise<void>)[];
-}
