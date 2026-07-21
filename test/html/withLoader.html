@@ -67,8 +67,7 @@
       result.style.display = 'none';
       btn.disabled = true;
 
-      // Simulate loading (100ms)
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 1000));
 
       loader.style.display = 'none';
       result.style.display = 'block';
