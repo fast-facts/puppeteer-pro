@@ -49,6 +49,6 @@
     "eslint-config-final": "^1.8.1",
     "puppeteer": "^25.3.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }
