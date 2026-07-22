@@ -153,7 +153,7 @@ export class ManageLocalStoragePlugin extends Plugin {
     if (!this.browser) return;
 
     const pages = await this.browser.pages();
-    const activePages = pages.filter(x => x.url() !== 'about:blank');
+    const activePages = pages.filter(x => !x.isClosed() && x.url() !== 'about:blank');
 
     for (const page of activePages) {
       const origin = await page.evaluate(() => window.origin);
@@ -173,7 +173,7 @@ export class ManageLocalStoragePlugin extends Plugin {
     const allLocalStorage: LocalStorage = {};
 
     const pages = await this.browser.pages();
-    const activePages = pages.filter(x => x.url() !== 'about:blank');
+    const activePages = pages.filter(x => !x.isClosed() && x.url() !== 'about:blank');
 
     for (const page of activePages) {
       const originLocalStorage = await page.evaluate(() => ({ [window.origin]: { ...localStorage } })) as LocalStorage;
