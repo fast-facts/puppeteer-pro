@@ -90,6 +90,12 @@ export const manageCookiesTest = {
       expect(readCookies(file).length).toBeGreaterThanOrEqual(1);
       await plugin.save(); // no open pages — must not wipe
       expect(readCookies(file).length).toBeGreaterThanOrEqual(1);
+
+      await browser.deleteCookie(...await browser.cookies());
+      expect((await browser.cookies()).length).toBe(0);
+      await plugin.load(); // no open pages — must still apply
+      expect((await browser.cookies()).some(c => c.name === 'TestCookie.x')).toBe(true);
+
       await plugin.clear();
       expect(readCookies(file).length).toBe(0);
     } finally {

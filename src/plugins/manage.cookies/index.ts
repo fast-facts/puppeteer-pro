@@ -121,21 +121,9 @@ export class ManageCookiesPlugin extends Plugin {
   }
 
   private async loadProfileCookies() {
-    const page = await this.getFirstPage();
-    if (!page) return;
-
-    const requiresRealPage = page.url() === 'about:blank';
-
-    if (requiresRealPage) {
-      await page.goto('http://www.google.com');
-    }
-
-    await this.browser?.deleteCookie(...await this.getCookies());
-    await this.browser?.setCookie(...this.allCookies[this.profile] || []);
-
-    if (requiresRealPage) {
-      await page.goBack();
-    }
+    if (!this.browser) return;
+    await this.browser.deleteCookie(...await this.getCookies());
+    await this.browser.setCookie(...this.allCookies[this.profile] || []);
   }
 
   private async clearProfileCookies() {
