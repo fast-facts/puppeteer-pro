@@ -208,7 +208,7 @@ export class Plugin {
 
     const pages = await this.browser.pages();
     const openPages = pages.filter(x => !x.isClosed());
-    const activePages = pages.filter(x => x.url() !== 'about:blank');
+    const activePages = openPages.filter(x => x.url() !== 'about:blank');
 
     return activePages[0] || openPages[0];
   }
