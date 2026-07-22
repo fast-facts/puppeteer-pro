@@ -13,10 +13,10 @@ export async function connect(options?: Puppeteer.ConnectOptions): Promise<Brows
 }
 
 export async function launch(options?: Puppeteer.LaunchOptions & Puppeteer.ConnectOptions): Promise<Browser> {
-  if (!options) options = {};
+  const opts = { ...(options ?? {}) };
 
   process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
-  const browser = await Puppeteer.launch({ defaultViewport: undefined, ...options });
+  const browser = await Puppeteer.launch({ defaultViewport: undefined, ...opts });
 
   return createBrowser(browser);
 }
