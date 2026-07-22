@@ -22,7 +22,7 @@ const PuppeteerPro = require('puppeteer-pro');
   const browser = await PuppeteerPro.launch();
 
   // Enable the 'avoidDetection' plugin to prevent headless detection
-  browser.avoidDetection();
+  await browser.avoidDetection();
 
   // Enable the 'solveRecaptchas' plugin to solve Google's recaptchas (remember to provide a wit.api API access token)
   const solver = await browser.solveRecaptchas('WIT_AI_ACCESS_TOKEN');
