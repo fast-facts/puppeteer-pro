@@ -90,13 +90,13 @@ async function getResult(browser: TestTarget, plugin: TestPlugin) {
   return works;
 }
 
-const addTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+const hooksPageEvents = (plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
   await browser.addPlugin(plugin);
   expect(await getResult(browser, plugin)).toBe(true);
 };
 
-const stopTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+const stopIgnoresPageEvents = (plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
   await browser.addPlugin(plugin);
   expect(await getResult(browser, plugin)).toBe(true);
@@ -105,7 +105,7 @@ const stopTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
   expect(await getResult(browser, plugin)).toBe(false);
 };
 
-const restartTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+const restartResumesPageEvents = (plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
   await browser.addPlugin(plugin);
   expect(await getResult(browser, plugin)).toBe(true);
@@ -117,7 +117,7 @@ const restartTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
   expect(await getResult(browser, plugin)).toBe(true);
 };
 
-const dependencyTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
+const cascadesToDependencies = (plugin: TestPlugin) => async (browser: TestTarget) => {
   const dependency = new TestPlugin();
   await plugin.addDependency(dependency);
 
@@ -142,7 +142,7 @@ const dependencyTest = (plugin: TestPlugin) => async (browser: TestTarget) => {
   expect(await checkBoth()).toBe(true);
 };
 
-const clearPluginsMidlife = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+const clearPluginsStopsAndDrops = (_plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
 
   let stopped = false;
@@ -162,7 +162,7 @@ const clearPluginsMidlife = (_plugin: TestPlugin) => async (browser: TestTarget)
   expect(p.isInitialized).toBe(true);
 };
 
-const doubleStop = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+const stopTwiceOnce = (_plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
 
   let stopCount = 0;
@@ -184,7 +184,7 @@ const doubleStop = (_plugin: TestPlugin) => async (browser: TestTarget) => {
 const addPluginOnce = (_plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
 
-  const p = new class extends Plugin {}();
+  const p = new class extends Plugin { }();
   await browser.addPlugin(p);
   await browser.addPlugin(p);
   expect(browser.plugins.length).toBe(1);
@@ -239,13 +239,13 @@ const restartAfterRemoveNoOp = (_plugin: TestPlugin) => async (browser: TestTarg
 const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
   tests: [
-    { describe: 'can add a plugin', tests: [addTest] },
+    { describe: 'addPlugin hooks page events', tests: [hooksPageEvents] },
     { describe: 'addPlugin ignores duplicate instance', tests: [addPluginOnce] },
-    { describe: 'can stop a plugin', tests: [stopTest] },
-    { describe: 'can restart a plugin', tests: [restartTest] },
-    { describe: 'can have a plugin with dependencies', tests: [dependencyTest] },
-    { describe: 'clearPlugins mid-lifecycle', tests: [clearPluginsMidlife] },
-    { describe: 'double stop is safe', tests: [doubleStop] },
+    { describe: 'stop ignores page events', tests: [stopIgnoresPageEvents] },
+    { describe: 'restart after stop resumes page events', tests: [restartResumesPageEvents] },
+    { describe: 'stop/restart cascades to dependencies', tests: [cascadesToDependencies] },
+    { describe: 'clearPlugins stops and drops plugins', tests: [clearPluginsStopsAndDrops] },
+    { describe: 'stop twice only runs afterStop once', tests: [stopTwiceOnce] },
     { describe: 'restart while running does nothing', tests: [restartWhileRunningNoOp] },
     { describe: 'restart after remove does nothing', tests: [restartAfterRemoveNoOp] },
   ],
