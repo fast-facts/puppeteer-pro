@@ -69,6 +69,7 @@ export const manageLocalStorageTest = {
       expect(await setAndCount('TestStorage.2')).toBe(2);
 
       await plugin.clear();
+      expect(await page.evaluate(() => localStorage.getItem('TestStorage.1'))).toBeNull();
       await plugin.stop();
       expect(Object.keys(readLocalStorage(file)[origin] || {}).filter(x => x.startsWith('TestStorage.')).length).toBe(0);
     } finally {

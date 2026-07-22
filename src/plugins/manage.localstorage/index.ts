@@ -121,6 +121,7 @@ export class ManageLocalStoragePlugin extends Plugin {
 
   private async clearProfileLocalStorage() {
     delete this.allLocalStorage[this.profile];
+    await this.setLocalStorage({});
 
     const localStorageString = this.stringify(this.allLocalStorage);
     await fs.writeFile(this.saveLocation, localStorageString);
