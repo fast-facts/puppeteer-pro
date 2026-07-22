@@ -59,11 +59,9 @@ export class SolveRecaptchasPlugin extends Plugin {
       await cursor.click(element);
     }
 
-    let numTriesLeft = 5;
-    const isFinished = async () => {
+    const isSolved = async () => {
       if (!(await this.hasCaptcha(page))) return true;
-      if (--numTriesLeft === 0) return true;
-      return anchorFrame?.evaluate(() => !!document.querySelector('.recaptcha-checkbox-checked'));
+      return !!(await anchorFrame.evaluate(() => !!document.querySelector('.recaptcha-checkbox-checked')));
     };
 
     await findAndClick(anchorFrame, '#recaptcha-anchor');
@@ -73,7 +71,12 @@ export class SolveRecaptchasPlugin extends Plugin {
 
     await findAndClick(bframeFrame, '.rc-button-audio');
 
-    while (!(await isFinished())) {
+    const maxAttempts = 5;
+    for (let attempt = 0; !(await isSolved()); attempt++) {
+      if (attempt >= maxAttempts) {
+        throw new Error(`reCAPTCHA solve failed after ${maxAttempts} attempts`);
+      }
+
       await waitForSelector(bframeFrame, '.rc-audiochallenge-tdownload-link');
 
       const audioUrl = await bframeFrame.evaluate(async () => document.querySelector<HTMLLinkElement>('.rc-audiochallenge-tdownload-link')?.href);
