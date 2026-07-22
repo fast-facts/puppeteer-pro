@@ -177,6 +177,15 @@ const doubleStop = (_plugin: TestPlugin) => async (browser: TestTarget) => {
   expect(p.isStopped).toBe(true);
 };
 
+const addPluginOnce = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
+
+  const p = new class extends Plugin {}();
+  await browser.addPlugin(p);
+  await browser.addPlugin(p);
+  expect(browser.plugins.length).toBe(1);
+};
+
 const restartWhileRunningNoOp = (_plugin: TestPlugin) => async (browser: TestTarget) => {
   await browser.clearPlugins();
 
@@ -204,6 +213,7 @@ const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
   tests: [
     { describe: 'can add a plugin', tests: [addTest] },
+    { describe: 'addPlugin ignores duplicate instance', tests: [addPluginOnce] },
     { describe: 'can stop a plugin', tests: [stopTest] },
     { describe: 'can restart a plugin', tests: [restartTest] },
     { describe: 'can have a plugin with dependencies', tests: [dependencyTest] },
