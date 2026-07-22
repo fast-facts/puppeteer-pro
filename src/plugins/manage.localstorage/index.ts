@@ -101,7 +101,10 @@ export class ManageLocalStoragePlugin extends Plugin {
       const profile = this.profile;
       const epoch = this.storageEpoch;
       const data = await this.getLocalStorage();
-      if (this.isStopped || profile !== this.profile || epoch !== this.storageEpoch) continue;
+      if (this.isStopped || profile !== this.profile || epoch !== this.storageEpoch) {
+        await sleep(300);
+        continue;
+      }
 
       const newHash = hash(this.stringify({ [profile]: data }));
 

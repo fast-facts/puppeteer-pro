@@ -102,7 +102,10 @@ export class ManageCookiesPlugin extends Plugin {
       const profile = this.profile;
       const epoch = this.cookiesEpoch;
       const data = await this.getCookies();
-      if (this.isStopped || profile !== this.profile || epoch !== this.cookiesEpoch) continue;
+      if (this.isStopped || profile !== this.profile || epoch !== this.cookiesEpoch) {
+        await sleep(300);
+        continue;
+      }
 
       const newHash = hash(this.stringify({ [profile]: data }));
 
