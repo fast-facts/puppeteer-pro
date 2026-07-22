@@ -14,7 +14,7 @@ export interface ManageCookiesOption {
   stringify?: (cookies: Record<string, Cookie[]>) => string;
   parse?: (cookies: string) => Record<string, Cookie[]>;
   disableWarning?: boolean;
-  profile?: 'string';
+  profile?: string;
 }
 
 export class ManageCookiesPlugin extends Plugin {

@@ -13,7 +13,7 @@ export interface ManageLocalStorageOption {
   stringify?: (localStorage: Record<string, LocalStorage>) => string;
   parse?: (localStorage: string) => Record<string, LocalStorage>;
   disableWarning?: boolean;
-  profile?: 'string';
+  profile?: string;
 }
 
 export class ManageLocalStoragePlugin extends Plugin {
