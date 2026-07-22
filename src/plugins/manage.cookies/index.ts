@@ -58,9 +58,13 @@ export class ManageCookiesPlugin extends Plugin {
 
   async switchToProfile(profile: string) {
     if (this.isStopped) return;
+    if (profile === this.profile) return;
+
+    if (this.mode === 'monitor') {
+      await this.saveProfileCookies();
+    }
 
     this.profile = profile;
-
     await this.loadProfileCookies();
   }
 
@@ -127,7 +131,7 @@ export class ManageCookiesPlugin extends Plugin {
   }
 
   private async clearProfileCookies() {
-    await this.browser?.deleteCookie(...this.allCookies[this.profile] || []);
+    await this.browser?.deleteCookie(...await this.getCookies());
     delete this.allCookies[this.profile];
 
     const cookiesString = this.stringify(this.allCookies);

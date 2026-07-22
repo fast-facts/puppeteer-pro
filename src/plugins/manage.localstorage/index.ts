@@ -57,9 +57,13 @@ export class ManageLocalStoragePlugin extends Plugin {
 
   async switchToProfile(profile: string) {
     if (this.isStopped) return;
+    if (profile === this.profile) return;
+
+    if (this.mode === 'monitor') {
+      await this.saveProfileLocalStorage();
+    }
 
     this.profile = profile;
-
     await this.loadProfileLocalStorage();
   }
 

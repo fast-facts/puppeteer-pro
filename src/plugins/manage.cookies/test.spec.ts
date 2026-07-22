@@ -57,8 +57,15 @@ export const manageCookiesTest = {
 
       expect(await setAndCount('TestCookie.1')).toBe(1);
 
+      if (mode === 'monitor') {
+        await page!.evaluate(() => document.cookie = 'TestCookie.flush=1');
+        await plugin.switchToProfile('other');
+        expect(readCookies(file, 'default').some(c => c.name === 'TestCookie.flush')).toBe(true);
+        await plugin.switchToProfile('default');
+      }
+
       await plugin.stop();
-      expect(readCookies(file).filter(x => x.name.startsWith('TestCookie.')).length).toBe(1);
+      expect(readCookies(file).filter(x => x.name.startsWith('TestCookie.')).length).toBeGreaterThanOrEqual(1);
 
       await plugin.restart();
       expect(await setAndCount('TestCookie.2')).toBe(2);

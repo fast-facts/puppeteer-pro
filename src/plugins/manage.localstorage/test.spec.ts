@@ -62,8 +62,15 @@ export const manageLocalStorageTest = {
 
       expect(await setAndCount('TestStorage.1')).toBe(1);
 
+      if (mode === 'monitor') {
+        await page!.evaluate(() => localStorage.setItem('TestStorage.flush', '1'));
+        await plugin.switchToProfile('other');
+        expect(!!readLocalStorage(file, 'default')[origin]?.['TestStorage.flush']).toBe(true);
+        await plugin.switchToProfile('default');
+      }
+
       await plugin.stop();
-      expect(Object.keys(readLocalStorage(file)[origin] || {}).filter(x => x.startsWith('TestStorage.')).length).toBe(1);
+      expect(Object.keys(readLocalStorage(file)[origin] || {}).filter(x => x.startsWith('TestStorage.')).length).toBeGreaterThanOrEqual(1);
 
       await plugin.restart();
       expect(await setAndCount('TestStorage.2')).toBe(2);
