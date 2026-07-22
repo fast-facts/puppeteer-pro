@@ -156,6 +156,10 @@ const clearPluginsMidlife = (_plugin: TestPlugin) => async (browser: TestTarget)
   await browser.clearPlugins();
   expect(stopped).toBe(true);
   expect(browser.plugins.length).toBe(0);
+  expect(p.isInitialized).toBe(false);
+
+  await browser.addPlugin(p);
+  expect(p.isInitialized).toBe(true);
 };
 
 const doubleStop = (_plugin: TestPlugin) => async (browser: TestTarget) => {
