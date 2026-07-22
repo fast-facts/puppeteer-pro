@@ -26,6 +26,7 @@ export class ManageCookiesPlugin extends Plugin {
   private profile = 'default';
 
   private allCookies: Record<string, Cookie[]> = {};
+  private cookiesEpoch = 0;
 
   constructor(opts: ManageCookiesOption) {
     super();
@@ -99,8 +100,9 @@ export class ManageCookiesPlugin extends Plugin {
 
     while (!this.isStopped) {
       const profile = this.profile;
+      const epoch = this.cookiesEpoch;
       const data = await this.getCookies();
-      if (this.isStopped || profile !== this.profile) continue;
+      if (this.isStopped || profile !== this.profile || epoch !== this.cookiesEpoch) continue;
 
       const newHash = hash(this.stringify({ [profile]: data }));
 
@@ -118,7 +120,10 @@ export class ManageCookiesPlugin extends Plugin {
   }
 
   private async saveProfileCookies() {
-    this.allCookies[this.profile] = await this.getCookies();
+    const epoch = this.cookiesEpoch;
+    const data = await this.getCookies();
+    if (epoch !== this.cookiesEpoch) return;
+    this.allCookies[this.profile] = data;
 
     const cookiesString = this.stringify(this.allCookies);
     await fs.writeFile(this.saveLocation, cookiesString);
@@ -126,11 +131,13 @@ export class ManageCookiesPlugin extends Plugin {
 
   private async loadProfileCookies() {
     if (!this.browser) return;
+    this.cookiesEpoch++;
     await this.browser.deleteCookie(...await this.getCookies());
     await this.browser.setCookie(...this.allCookies[this.profile] || []);
   }
 
   private async clearProfileCookies() {
+    this.cookiesEpoch++;
     await this.browser?.deleteCookie(...await this.getCookies());
     delete this.allCookies[this.profile];
 
