@@ -213,6 +213,29 @@ const restartWhileRunningNoOp = (_plugin: TestPlugin) => async (browser: TestTar
   expect(p.isStopped).toBe(false);
 };
 
+const restartAfterRemoveNoOp = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
+
+  let restartCount = 0;
+  let pages = 0;
+  const p = new class extends Plugin {
+    async afterRestart() { restartCount++; }
+    async onPageCreated() { pages++; }
+  }();
+
+  await browser.addPlugin(p);
+  await browser.clearPlugins();
+
+  await p.restart();
+  expect(restartCount).toBe(0);
+  expect(p.isStopped).toBe(true);
+  expect(p.isInitialized).toBe(false);
+
+  const page = await browser.newPage();
+  await page.close();
+  expect(pages).toBe(0);
+};
+
 const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
   tests: [
@@ -224,6 +247,7 @@ const pluginTests: PluginTests = {
     { describe: 'clearPlugins mid-lifecycle', tests: [clearPluginsMidlife] },
     { describe: 'double stop is safe', tests: [doubleStop] },
     { describe: 'restart while running does nothing', tests: [restartWhileRunningNoOp] },
+    { describe: 'restart after remove does nothing', tests: [restartAfterRemoveNoOp] },
   ],
 };
 
