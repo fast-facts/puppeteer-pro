@@ -4,7 +4,7 @@ A simple [`puppeteer`](https://github.com/puppeteer/puppeteer) wrapper to enable
 
 ## Installation
 
-Requires node v10 and higher
+Requires Node.js 22 and higher
 
 ```bash
 npm install puppeteer-pro
