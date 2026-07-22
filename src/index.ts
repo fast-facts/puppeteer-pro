@@ -32,7 +32,7 @@ async function createBrowser(puppeteerBrowser: Puppeteer.Browser): Promise<Brows
 
   const _createBrowserContext = browser.createBrowserContext;
   browser.createBrowserContext = async (options?: Puppeteer.BrowserContextOptions) => {
-    const context: Puppeteer.BrowserContext = await _createBrowserContext.apply(browser, options);
+    const context: Puppeteer.BrowserContext = await _createBrowserContext.call(browser, options);
 
     return createBrowserContext(context);
   };
