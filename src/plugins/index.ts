@@ -38,7 +38,9 @@ export class Plugin {
 
     this.startCounter++;
 
-    const thisOnTargetCreated = this.onTargetCreated.bind(this);
+    const thisOnTargetCreated = (...args: Parameters<Plugin['onTargetCreated']>) => {
+      void Promise.resolve(this.onTargetCreated(...args)).catch(() => undefined);
+    };
     browser.on('targetcreated', thisOnTargetCreated);
     this.teardowns.push(() => browser.off('targetcreated', thisOnTargetCreated));
 
