@@ -88,6 +88,8 @@ export const manageCookiesTest = {
       page = undefined;
 
       expect(readCookies(file).length).toBeGreaterThanOrEqual(1);
+      await plugin.save(); // no open pages — must not wipe
+      expect(readCookies(file).length).toBeGreaterThanOrEqual(1);
       await plugin.clear();
       expect(readCookies(file).length).toBe(0);
     } finally {

@@ -143,13 +143,8 @@ export class ManageCookiesPlugin extends Plugin {
   }
 
   private async getCookies() {
-    const page = await this.getFirstPage();
-    if (!page) return [];
-
     try {
-      const cookies = await this.browser?.cookies() || [];
-
-      return cookies;
+      return await this.browser?.cookies() || [];
     } catch {
       return [];
     }
