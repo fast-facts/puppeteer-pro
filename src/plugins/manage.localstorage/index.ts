@@ -93,15 +93,19 @@ export class ManageLocalStoragePlugin extends Plugin {
     let oldHash = '';
 
     while (!this.isStopped) {
-      const localStorage = { [this.profile]: await this.getLocalStorage() };
-      const localStorageString = this.stringify(localStorage);
-      const newHash = hash(localStorageString);
+      const profile = this.profile;
+      const data = await this.getLocalStorage();
+      if (this.isStopped || profile !== this.profile) continue;
 
-      if (oldProfile !== this.profile) {
-        oldProfile = this.profile;
+      const newHash = hash(this.stringify({ [profile]: data }));
+
+      if (oldProfile !== profile) {
+        oldProfile = profile;
+        oldHash = newHash;
       } else if (oldHash !== newHash) {
         oldHash = newHash;
-        await this.saveProfileLocalStorage();
+        this.allLocalStorage[profile] = data;
+        await fs.writeFile(this.saveLocation, this.stringify(this.allLocalStorage));
       } else {
         await sleep(300);
       }

@@ -94,15 +94,19 @@ export class ManageCookiesPlugin extends Plugin {
     let oldHash = '';
 
     while (!this.isStopped) {
-      const cookies = { [this.profile]: await this.getCookies() };
-      const cookiesString = this.stringify(cookies);
-      const newHash = hash(cookiesString);
+      const profile = this.profile;
+      const data = await this.getCookies();
+      if (this.isStopped || profile !== this.profile) continue;
 
-      if (oldProfile !== this.profile) {
-        oldProfile = this.profile;
+      const newHash = hash(this.stringify({ [profile]: data }));
+
+      if (oldProfile !== profile) {
+        oldProfile = profile;
+        oldHash = newHash;
       } else if (oldHash !== newHash) {
         oldHash = newHash;
-        await this.saveProfileCookies();
+        this.allCookies[profile] = data;
+        await fs.writeFile(this.saveLocation, this.stringify(this.allCookies));
       } else {
         await sleep(300);
       }
