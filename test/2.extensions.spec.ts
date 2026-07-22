@@ -52,6 +52,14 @@ const withLoaderTest = async (browser: Browser) => {
 
   expect(await page.$('#result').then(x => x?.isVisible())).toBe(true);
   expect(await page.$('#loader').then(x => x?.isVisible())).toBe(false);
+
+  const start = Date.now();
+  await expect(page.withLoader(
+    async () => { throw new Error('boom'); },
+    '#never-exists',
+    { timeout: 10_000 }
+  )).rejects.toThrow('boom');
+  expect(Date.now() - start).toBeLessThan(3_000);
 };
 
 const pageTests: PluginTestsDirect = {

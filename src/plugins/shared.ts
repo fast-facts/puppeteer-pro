@@ -18,13 +18,16 @@ export function newPage(oldPage: Puppeteer.Page): Page {
 
   page.withLoader = async<T>(fn: () => Promise<T>, loadingSelector: string, visibleWaitOptions?: Puppeteer.WaitForSelectorOptions, hiddenWaitOptions?: Puppeteer.WaitForSelectorOptions): Promise<T> => {
     const loadingVisible = page.waitForSelector(loadingSelector, visibleWaitOptions);
+    const retPromise = Promise.resolve().then(fn);
 
-    const ret = await fn();
-
-    await loadingVisible;
-    await page.waitForSelector(loadingSelector, hiddenWaitOptions || { hidden: true });
-
-    return ret;
+    try {
+      const [, ret] = await Promise.all([loadingVisible, retPromise]);
+      await page.waitForSelector(loadingSelector, hiddenWaitOptions || { hidden: true });
+      return ret;
+    } catch (err) {
+      await retPromise.catch(() => undefined);
+      throw err;
+    }
   };
 
   return page;
