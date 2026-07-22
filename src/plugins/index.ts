@@ -150,6 +150,8 @@ export class Plugin {
 
   protected async beforeRestart() { null; }
   async restart() {
+    if (!this.isStopped) return;
+
     await this.beforeRestart();
 
     this.startCounter++;
