@@ -25,6 +25,7 @@ export class ManageLocalStoragePlugin extends Plugin {
   private profile = 'default';
 
   private allLocalStorage: Record<string, LocalStorage> = {};
+  private storageEpoch = 0;
 
   constructor(opts: ManageLocalStorageOption) {
     super();
@@ -98,8 +99,9 @@ export class ManageLocalStoragePlugin extends Plugin {
 
     while (!this.isStopped) {
       const profile = this.profile;
+      const epoch = this.storageEpoch;
       const data = await this.getLocalStorage();
-      if (this.isStopped || profile !== this.profile) continue;
+      if (this.isStopped || profile !== this.profile || epoch !== this.storageEpoch) continue;
 
       const newHash = hash(this.stringify({ [profile]: data }));
 
@@ -108,7 +110,7 @@ export class ManageLocalStoragePlugin extends Plugin {
         oldHash = newHash;
       } else if (oldHash !== newHash) {
         oldHash = newHash;
-        this.allLocalStorage[profile] = data;
+        this.mergeProfileLocalStorage(profile, data);
         await fs.writeFile(this.saveLocation, this.stringify(this.allLocalStorage));
       } else {
         await sleep(300);
@@ -116,18 +118,30 @@ export class ManageLocalStoragePlugin extends Plugin {
     }
   }
 
+  private mergeProfileLocalStorage(profile: string, data: LocalStorage) {
+    this.allLocalStorage[profile] = {
+      ...(this.allLocalStorage[profile] || {}),
+      ...data,
+    };
+  }
+
   private async saveProfileLocalStorage() {
-    this.allLocalStorage[this.profile] = await this.getLocalStorage();
+    const epoch = this.storageEpoch;
+    const data = await this.getLocalStorage();
+    if (epoch !== this.storageEpoch) return;
+    this.mergeProfileLocalStorage(this.profile, data);
 
     const localStorageString = this.stringify(this.allLocalStorage);
     await fs.writeFile(this.saveLocation, localStorageString);
   }
 
   private async loadProfileLocalStorage() {
+    this.storageEpoch++;
     await this.setLocalStorage(this.allLocalStorage[this.profile] || {});
   }
 
   private async clearProfileLocalStorage() {
+    this.storageEpoch++;
     delete this.allLocalStorage[this.profile];
     await this.setLocalStorage({});
 

@@ -111,6 +111,36 @@ export const manageLocalStorageTest = {
       if (fs.existsSync(file)) fs.unlinkSync(file);
     }
   },
+  preservesOtherOrigins: () => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
+    const browser = await createBrowser();
+    const file = tmpFile();
+    fs.writeFileSync(file, JSON.stringify({
+      default: {
+        'https://example.com': { keep: '1' },
+        'https://example.org': { other: '2' },
+      },
+    }));
+
+    const plugin = await browser.manageLocalStorage({ saveLocation: file, mode: 'manual', disableWarning: true });
+    let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
+
+    try {
+      page = await browser.newPage();
+      await page.goto('https://example.com');
+      await page.evaluate(() => localStorage.setItem('keep', '1'));
+      await page.evaluate(() => localStorage.setItem('new', '3'));
+      await plugin.save();
+
+      const saved = readLocalStorage(file);
+      expect(saved['https://example.org']?.other).toBe('2');
+      expect(saved['https://example.com']?.keep).toBe('1');
+      expect(saved['https://example.com']?.new).toBe('3');
+    } finally {
+      await page?.close();
+      await browser?.close();
+      if (fs.existsSync(file)) fs.unlinkSync(file);
+    }
+  },
   profiles: (opts: ManageLocalStorageOption) => async (createBrowser: () => Promise<Browser | BrowserContext>) => {
     const browser = await createBrowser();
     const file = tmpFile();
