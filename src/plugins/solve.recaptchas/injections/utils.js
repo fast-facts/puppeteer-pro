@@ -133,10 +133,11 @@ module.exports = async (audioUrl) => {
 
   const _audioBuffer = await normalizeAudio(audio);
 
+  const pad = _audioBuffer.duration > 3 ? 1.5 : 0;
   const audioSlice = sliceAudio({
     audioBuffer: _audioBuffer,
-    start: 1.5,
-    end: _audioBuffer.duration - 1.5
+    start: pad,
+    end: _audioBuffer.duration - pad
   });
 
   const wav = audioBufferToWav(audioSlice);
