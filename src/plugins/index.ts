@@ -108,7 +108,19 @@ export class Plugin {
       request.abort = async function () { aborted++; abortArgs = abortArgs || arguments; await handleRequest(); };
       request.continue = async function () { continued++; continueArgs = continueArgs || arguments; await handleRequest(); };
 
-      requestHandlers.forEach(handler => handler(request));
+      for (const handler of requestHandlers) {
+        void (async () => {
+          const before = responded + aborted + continued;
+          try {
+            await handler(request);
+          } catch {
+            null;
+          }
+          if (responded + aborted + continued === before) {
+            await request.continue();
+          }
+        })();
+      }
     });
 
     const _pageOn = page.on;

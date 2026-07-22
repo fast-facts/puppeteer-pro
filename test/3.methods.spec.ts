@@ -236,6 +236,25 @@ const restartAfterRemoveNoOp = (_plugin: TestPlugin) => async (browser: TestTarg
   expect(pages).toBe(0);
 };
 
+const throwingRequestHandlerContinues = (_plugin: TestPlugin) => async (browser: TestTarget) => {
+  await browser.clearPlugins();
+
+  const p = new class extends Plugin {
+    requiresInterception = true;
+    async processRequest() { throw new Error('handler boom'); }
+  }();
+
+  await browser.addPlugin(p);
+
+  const page = await browser.newPage();
+  try {
+    const response = await page.goto('https://example.com', { waitUntil: 'domcontentloaded', timeout: 15_000 });
+    expect(response?.ok()).toBe(true);
+  } finally {
+    await page.close();
+  }
+};
+
 const pluginTests: PluginTests = {
   describe: 'PuppeteerPro',
   tests: [
@@ -248,6 +267,7 @@ const pluginTests: PluginTests = {
     { describe: 'stop twice only runs afterStop once', tests: [stopTwiceOnce] },
     { describe: 'restart while running does nothing', tests: [restartWhileRunningNoOp] },
     { describe: 'restart after remove does nothing', tests: [restartAfterRemoveNoOp] },
+    { describe: 'throwing request handler continues request', tests: [throwingRequestHandlerContinues] },
   ],
 };
 
