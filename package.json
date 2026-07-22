@@ -42,7 +42,7 @@
     "user-agents": "^2.1.94"
   },
   "devDependencies": {
-    "@types/node": "^25.9.4",
+    "@types/node": "^25.9.5",
     "@types/user-agents": "^1.0.4",
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
