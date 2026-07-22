@@ -29,6 +29,12 @@ export class SolveRecaptchasPlugin extends Plugin {
       !!document.querySelector<HTMLIFrameElement>('iframe[src*="api2/bframe"]'));
   }
 
+  async isCaptchaSolved(page: Page) {
+    const anchorFrame = page.frames().find(x => x.url().includes('api2/anchor'));
+    if (!anchorFrame) return false;
+    return anchorFrame.evaluate(() => !!document.querySelector('.recaptcha-checkbox-checked'));
+  }
+
   async solveRecaptcha(page: Page) {
     if (this.isStopped) return;
     if (!this.witAiAccessToken) return;
