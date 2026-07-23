@@ -202,7 +202,7 @@ export class Plugin {
     this.startCounter--;
     if (this.requiresInterception && this.browser) this.browser.interceptions--;
 
-    if (this.browser && this.browser.interceptions === 0) {
+    if (this.browser?.interceptions === 0) {
       const pages = await this.browser.pages();
 
       pages.filter(x => !x.isClosed()).forEach(async (page: Puppeteer.Page) => {
