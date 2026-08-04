@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require('dotenv-safe').config();
+import 'dotenv-safe/config';
 
 import * as Puppeteer from 'puppeteer';
 import * as PuppeteerPro from '../src';
