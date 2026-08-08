@@ -37,7 +37,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "fingerprint-injector": "^2.1.82",
+    "fingerprint-injector": "^2.1.86",
     "ghost-cursor": "^1.4.2",
     "user-agents": "^2.1.125"
   },
