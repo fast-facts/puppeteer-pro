@@ -17,11 +17,11 @@ export function newPage(oldPage: Puppeteer.Page): Page {
   };
 
   page.withLoader = async<T>(fn: () => Promise<T>, loadingSelector: string, visibleWaitOptions?: Puppeteer.WaitForSelectorOptions, hiddenWaitOptions?: Puppeteer.WaitForSelectorOptions): Promise<T> => {
-    const loadingVisible = page.waitForSelector(loadingSelector, visibleWaitOptions);
+    const loadingVisible = page.waitForSelector(loadingSelector, visibleWaitOptions || { timeout: 2000 });
     const retPromise = Promise.resolve().then(fn);
 
     try {
-      const [, ret] = await Promise.all([loadingVisible, retPromise]);
+      const [, ret] = await Promise.all([loadingVisible.catch(() => undefined), retPromise]);
       await page.waitForSelector(loadingSelector, hiddenWaitOptions || { hidden: true });
       return ret;
     } catch (err) {
