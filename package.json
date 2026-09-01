@@ -39,7 +39,7 @@
   "dependencies": {
     "fingerprint-injector": "^2.1.88",
     "ghost-cursor": "^1.4.2",
-    "user-agents": "^2.1.125"
+    "user-agents": "^2.1.156"
   },
   "devDependencies": {
     "@types/dotenv-safe": "^9.1.0",
