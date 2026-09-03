@@ -48,7 +48,7 @@
     "copyfiles": "^2.4.1",
     "dotenv-safe": "^9.1.0",
     "eslint-config-final": "^1.8.17",
-    "puppeteer": "^25.7.0",
+    "puppeteer": "^25.8.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   }
