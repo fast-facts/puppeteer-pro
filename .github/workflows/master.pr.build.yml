@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - run: npm install
+      - run: npm ci
 
       - uses: DamianReeves/write-file-action@v1.3
         with:
