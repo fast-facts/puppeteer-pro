@@ -80,7 +80,7 @@ export class Plugin {
       offOnClose.forEach(fn => fn());
     });
 
-    const requestHandlers: ((request: any) => void)[] = [];
+    const requestHandlers: ((request: any, eventData: any) => void)[] = [];
     page.on('request', request => {
       const _respond = request.respond;
       let responded = 0;
@@ -112,7 +112,7 @@ export class Plugin {
         void (async () => {
           const before = responded + aborted + continued;
           try {
-            await handler(request);
+            await handler(request, undefined);
           } catch {
             null;
           }
