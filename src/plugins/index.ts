@@ -126,7 +126,8 @@ export class Plugin {
     const _pageOn = page.on;
     page.on = function async(eventName, handler) {
       if (eventName === 'request') {
-        requestHandlers.push(handler);
+        // Named events still pass one argument. The second parameter is only for '*'.
+        requestHandlers.push(handler as (request: any) => void);
 
         return page;
       } else {
